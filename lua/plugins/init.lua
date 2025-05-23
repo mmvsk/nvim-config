@@ -30,9 +30,9 @@ return {
 					local api = require("nvim-tree.api")
 					local opts = { buffer = bufnr, noremap = true, silent = true }
 
-				  vim.keymap.set("n", "o", api.node.open.edit, opts)
+					vim.keymap.set("n", "o", api.node.open.edit, opts)
 					vim.keymap.set("n", "C", api.tree.change_root_to_node, opts)
-				  vim.keymap.set("n", "u", api.tree.change_root_to_parent, opts)
+					vim.keymap.set("n", "u", api.tree.change_root_to_parent, opts)
 				end,
 			}
 			vim.keymap.set("n", "<F4>", ":NvimTreeToggle<CR>", { silent = true })
@@ -296,64 +296,55 @@ return {
 		config = function()
 			vim.g.one_allow_italics = 1
 			vim.cmd("colorscheme one")
-			vim.api.nvim_create_autocmd("BufWinEnter", {
-				pattern = "NvimTree_*",
-				callback = function()
-					vim.cmd("set winhighlight=Normal:NvimTreeNormal")
-					vim.cmd("highlight NvimTreeNormal guibg=#21252b")
-				end,
-			})
 
-			vim.cmd([[
-				highlight VertSplit guibg=NONE guifg=#282c34
-				highlight WinSeparator guibg=NONE guifg=#282c34
-			]])
+			local BG_NORMAL    = "#282c34"
+			local BG_INACTIVE  = "#252930"
+			local BG_TREE      = "#21252b"
+			local BORDER_COLOR = "#282c34"
+			local GUTTER_FG    = "#555b62"
 
-			vim.api.nvim_create_autocmd("WinEnter", {
-				callback = function()
-					if vim.bo.filetype ~= "NvimTree" then
-						vim.wo.winhighlight = "Normal:Normal,NormalNC:NormalNC"
+			-- Global highlights
+			vim.api.nvim_set_hl(0, "Normal", { bg = BG_NORMAL })
+			vim.api.nvim_set_hl(0, "LineNr", { bg = BG_NORMAL, fg = GUTTER_FG })
+			vim.api.nvim_set_hl(0, "SignColumn", { bg = BG_NORMAL })
+			vim.api.nvim_set_hl(0, "VertSplit", { fg = BORDER_COLOR, bg = BG_NORMAL })
+			vim.api.nvim_set_hl(0, "WinSeparator", { fg = BORDER_COLOR, bg = BG_NORMAL })
+
+			vim.api.nvim_set_hl(0, "NormalNC", { bg = BG_INACTIVE })
+			vim.api.nvim_set_hl(0, "LineNrNC", { bg = BG_INACTIVE, fg = GUTTER_FG })
+			vim.api.nvim_set_hl(0, "SignColumnNC", { bg = BG_INACTIVE })
+
+			vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = BG_TREE })
+
+			-- Update all window highlights
+			local function sync_window_colors()
+				for _, win in ipairs(vim.api.nvim_list_wins()) do
+					local buf = vim.api.nvim_win_get_buf(win)
+					local ft = vim.api.nvim_buf_get_option(buf, "filetype")
+
+					if ft == "NvimTree" then
+						pcall(vim.api.nvim_win_set_option, win, "winhighlight", "Normal:NvimTreeNormal")
+					else
+						local hl = table.concat({
+							"Normal:Normal",
+							"NormalNC:NormalNC",
+							"LineNr:LineNr",
+							"LineNrNC:LineNrNC",
+							"SignColumn:SignColumn",
+							"SignColumnNC:SignColumnNC",
+							"VertSplit:VertSplit",
+							"WinSeparator:WinSeparator",
+						}, ",")
+						pcall(vim.api.nvim_win_set_option, win, "winhighlight", hl)
 					end
-				end,
-			})
+				end
+			end
 
-			vim.api.nvim_create_autocmd("WinLeave", {
+			vim.api.nvim_create_autocmd({ "WinEnter", "WinLeave", "BufWinEnter", "VimEnter" }, {
 				callback = function()
-					if vim.bo.filetype ~= "NvimTree" then
-						vim.wo.winhighlight = "Normal:NormalNC,NormalNC:NormalNC"
-					end
+					vim.defer_fn(sync_window_colors, 10)
 				end,
 			})
-
-			vim.api.nvim_set_hl(0, "NormalNC", { bg = "#252930" }) -- slightly darker than Normal
-		end,
-	},
-
-	{
-		"nvim-lualine/lualine.nvim",
-		lazy = false,
-		dependencies = { "nvim-tree/nvim-web-devicons" },
-		config = function()
-			local original_laststatus = vim.opt.laststatus:get()
-
-			require("lualine").setup({
-				options = {
-					theme = "auto",
-					globalstatus = true,
-					--section_separators = { left = "", right = "" },
-					--component_separators = { left = "", right = "" },
-				},
-				-- sections = {
-				-- 	lualine_a = { "mode" },
-				-- 	lualine_b = { "branch", "diff" },
-				-- 	lualine_c = { "filename" },
-				-- 	lualine_x = { "diagnostics", "encoding", "fileformat", "filetype" },
-				-- 	lualine_y = { "progress" },
-				-- 	lualine_z = { "location" },
-				-- },
-			})
-
-			vim.opt.laststatus = original_laststatus
 		end,
 	},
 
