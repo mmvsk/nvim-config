@@ -237,72 +237,64 @@ return {
 		"preservim/vim-markdown",
 		ft = { "markdown" },
 		config = function()
-			-- vim-markdown config
 			vim.g.vim_markdown_new_list_item_indent = 0
 			vim.g.vim_markdown_auto_insert_bullets = 1
 			vim.g.vim_markdown_folding_disabled = 1
 
-			-- Custom checkbox toggle logic
 			local function toggle_checkbox()
+				local row = vim.api.nvim_win_get_cursor(0)[1] - 1
 				local line = vim.api.nvim_get_current_line()
-				local cursor = vim.api.nvim_win_get_cursor(0)
-				local row = cursor[1] - 1
 
-				if line:match("^%s*%- %[ %]") then
-					line = line:gsub("%- %[ %]%s*", "- [x] ", 1)
-				elseif line:match("^%s*%- %[x%]") then
-					line = line:gsub("%- %[x%]%s*", "- ", 1)
-				elseif line:match("^%s*%- ?$") or line:match("^%s*%- %s+[^%[]") then
-  				line = line:gsub("%- %s*", "- [ ] ", 1)
+				local indent = line:match("^(%s*)") or ""
+				local bullet = line:match("^%s*([%-%*])") or "-"
+				local rest = line:gsub("^%s*[%-%*]%s*", "")
+
+				local new_line
+
+				if rest:match("^%[ %]") then
+					-- [ ] → [x]
+					new_line = indent .. bullet .. " [x] " .. rest:sub(5)
+				elseif rest:match("^%[x%]") then
+					-- [x] → plain
+					new_line = indent .. bullet .. " " .. rest:sub(6)
+				elseif rest == "" then
+					-- bare bullet → add [ ]
+					new_line = indent .. bullet .. " [ ] "
 				else
-					return
+					-- plain → [ ]
+					new_line = indent .. bullet .. " [ ] " .. rest
 				end
 
-				vim.api.nvim_buf_set_lines(0, row, row + 1, false, { line })
+				vim.api.nvim_buf_set_lines(0, row, row + 1, false, { new_line })
 			end
 
-			-- Smart indentation that respects buffer settings
+			local function is_blank_bullet(line)
+				return line:match("^%s*[%-%*]%s*$") or line:match("^%s*[%-%*]%s*%[ %]%s*$")
+			end
 
 			local function smart_indent(should_indent)
+				local row = vim.api.nvim_win_get_cursor(0)[1] -- current row
 				local line = vim.api.nvim_get_current_line()
-				local is_bullet = line:match("^%s*[%*-]%s*$")
 
-				if is_bullet then
-					-- Save cursor position
-					local col = vim.api.nvim_win_get_cursor(0)[2]
-
-					-- Use built-in indent commands
-					if should_indent then
-						vim.cmd("normal! >>")
-					else
-						vim.cmd("normal! <<")
-					end
-
-					-- Restore cursor to end of line if it was there
-					if col >= #line then
-						vim.api.nvim_win_set_cursor(0, { vim.api.nvim_win_get_cursor(0)[1], #vim.api.nvim_get_current_line() })
-					end
+				if is_blank_bullet(line) then
+					vim.cmd(should_indent and "normal! >>" or "normal! <<")
+					local new_line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
+					vim.api.nvim_win_set_cursor(0, { row, #new_line })
+					vim.cmd("startinsert")
 				else
-					-- Fallback to normal tab behavior
-					if should_indent then
-						vim.api.nvim_input("<Tab>")
-					else
-						vim.api.nvim_input("<S-Tab>")
-					end
+					vim.api.nvim_input(should_indent and "<Tab>" or "<S-Tab>")
 				end
 			end
 
 			vim.api.nvim_create_autocmd("FileType", {
 				pattern = "markdown",
 				callback = function()
-					-- Toggle checkbox with <Space>
+					-- Toggle checkbox with <Space> on bullets
 					vim.keymap.set("n", "<Space>", toggle_checkbox, { buffer = true, silent = true })
-					-- Smart indentation in insert mode
+
+					-- Smart Tab indent/dedent
 					vim.keymap.set("i", "<Tab>", function() smart_indent(true) end, { buffer = true })
 					vim.keymap.set("i", "<S-Tab>", function() smart_indent(false) end, { buffer = true })
-					-- Optional: Normal mode mappings if desired
-					vim.keymap.set("n", ">>", ">>", { buffer = true, remap = true })
-					vim.keymap.set("n", "<<", "<<", { buffer = true, remap = true })
 				end,
 			})
 		end,
