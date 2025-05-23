@@ -11,8 +11,29 @@ return {
 			require("nvim-tree").setup {
 				view = { width = 30 },
 				renderer = { group_empty = true },
-				filters = { dotfiles = false },
-				git = { enable = true },
+				filters = {
+					dotfiles = false,
+					custom = {
+						"^.git$",   -- hide the `.git` directory
+						"^node_modules$", -- hide `node_modules`
+					},
+				},
+				sort = {
+					sorter = "case_sensitive"
+				},
+				git = { enable = true, ignore = false },
+				-- NOT WORKING
+				--sync_root_with_cwd = false, -- disable auto-sync to global cwd
+				--respect_buf_cwd = true, -- use buffer-local cwd (so it respects lcd)
+				--update_cwd = true, -- update tree root when cwd changes
+				on_attach = function(bufnr)
+					local api = require("nvim-tree.api")
+					local opts = { buffer = bufnr, noremap = true, silent = true }
+
+				  vim.keymap.set("n", "o", api.node.open.edit, opts)
+					vim.keymap.set("n", "C", api.tree.change_root_to_node, opts)
+				  vim.keymap.set("n", "u", api.tree.change_root_to_parent, opts)
+				end,
 			}
 			vim.keymap.set("n", "<F4>", ":NvimTreeToggle<CR>", { silent = true })
 		end,

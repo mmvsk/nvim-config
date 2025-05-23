@@ -1,6 +1,9 @@
 -- ~/.config/nvim/init.lua
 -- Entry point — sets leader, loads lazy.nvim, and config modules
 
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
 -- Leader keys
 vim.g.mapleader = ","
 vim.g.maplocalleader = "_"
