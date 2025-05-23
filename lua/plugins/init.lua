@@ -234,79 +234,22 @@ return {
 
 	-- markdown support
 	{
-		"preservim/vim-markdown",
-		ft = { "markdown" },
-		config = function()
-			vim.g.vim_markdown_new_list_item_indent = 0
-			vim.g.vim_markdown_auto_insert_bullets = 1
-			vim.g.vim_markdown_folding_disabled = 1
-
-			local function toggle_checkbox()
-				local row = vim.api.nvim_win_get_cursor(0)[1] - 1
-				local line = vim.api.nvim_get_current_line()
-
-				local indent = line:match("^(%s*)") or ""
-				local bullet = line:match("^%s*([%-%*])") or "-"
-				local rest = line:gsub("^%s*[%-%*]%s*", "")
-
-				local new_line
-
-				if rest:match("^%[ %]") then
-					-- [ ] → [x]
-					new_line = indent .. bullet .. " [x] " .. rest:sub(5)
-				elseif rest:match("^%[x%]") then
-					-- [x] → plain
-					new_line = indent .. bullet .. " " .. rest:sub(6)
-				elseif rest == "" then
-					-- bare bullet → add [ ]
-					new_line = indent .. bullet .. " [ ] "
-				else
-					-- plain → [ ]
-					new_line = indent .. bullet .. " [ ] " .. rest
-				end
-
-				vim.api.nvim_buf_set_lines(0, row, row + 1, false, { new_line })
-			end
-
-			local function is_blank_bullet(line)
-				return line:match("^%s*[%-%*]%s*$") or line:match("^%s*[%-%*]%s*%[ %]%s*$")
-			end
-
-			local function smart_indent(should_indent)
-				local row = vim.api.nvim_win_get_cursor(0)[1] -- current row
-				local line = vim.api.nvim_get_current_line()
-
-				if is_blank_bullet(line) then
-					vim.cmd(should_indent and "normal! >>" or "normal! <<")
-					local new_line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
-					vim.api.nvim_win_set_cursor(0, { row, #new_line })
-					vim.cmd("startinsert")
-				else
-					vim.api.nvim_input(should_indent and "<Tab>" or "<S-Tab>")
-				end
-			end
-
+		"gabrielelana/vim-markdown",
+		ft = "markdown",
+		init = function()
+			vim.g.markdown_enable_conceal = 0
+			vim.g.markdown_enable_spell_checking = 0
+			vim.g.markdown_enable_input_abbreviations = 0
 			vim.api.nvim_create_autocmd("FileType", {
 				pattern = "markdown",
 				callback = function()
-					-- Toggle checkbox with <Space> on bullets
-					vim.keymap.set("n", "<Space>", toggle_checkbox, { buffer = true, silent = true })
-
-					-- Smart Tab indent/dedent
-					vim.keymap.set("i", "<Tab>", function() smart_indent(true) end, { buffer = true })
-					vim.keymap.set("i", "<S-Tab>", function() smart_indent(false) end, { buffer = true })
+					vim.bo.tabstop = 4
+					vim.bo.shiftwidth = 4
+					vim.bo.softtabstop = 4
+					vim.bo.expandtab = true -- optional: use spaces instead of tabs
 				end,
 			})
-		end,
-	},
-
-	{
-		"dkarter/bullets.vim",
-		ft = { "markdown", "text", "gitcommit" },
-		config = function()
-			vim.g.bullets_enabled_file_types = { "markdown", "text", "gitcommit" }
-			vim.g.bullets_outline_levels = { "num", "abc", "-", "*", "+" } -- whatever you prefer
-		end,
+		end
 	},
 
 
