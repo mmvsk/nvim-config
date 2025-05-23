@@ -133,16 +133,20 @@ return {
 	-- commenting (gcc in command, gc in select)
 	{
 		"numToStr/Comment.nvim",
-		keys = {
-			{ "gcc",        mode = "n",          desc = "Toggle comment line" },
-			{ "gc",         mode = { "n", "v" }, desc = "Toggle comment block" },
-			{ "<leader>cc", mode = "n",          desc = "Toggle comment line" },
-			{ "<leader>c",  mode = { "n", "v" }, desc = "Toggle comment block" },
-		},
+		event = "VeryLazy",
 		config = function()
 			require("Comment").setup({
 				padding = false,
 			})
+
+			local api = require("Comment.api")
+
+			-- Comment line (normal mode)
+			vim.keymap.set("n", "<leader>c", api.toggle.linewise.current, { desc = "Comment line" })
+
+			-- Comment selection (visual)
+			vim.keymap.set("v", "<leader>c", "<ESC><cmd>lua require('Comment.api').toggle.linewise(vim.fn.visualmode())<CR>",
+				{ desc = "Comment selection", silent = true })
 		end,
 	},
 

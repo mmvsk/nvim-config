@@ -150,11 +150,18 @@ map("n", "<F2>", ":set wrap!<CR>:set linebreak!<CR>", { silent = true })
 -- yank full buf
 map("n", "<leader>y", ":%y+<CR>", { silent = true, desc = "Yank entire buffer" })
 
--- Visual whitespace fixers (2, 4, 8 spaces → tab) for selection only
-map("v", "<leader>f",  ":'<,'>s/^\\(\\s*\\)\\zs  /\\t/g<CR>", { silent = true, desc = "2 spaces → tab (visual)" })
-map("v", "<leader>2f", ":'<,'>s/^\\(\\s*\\)\\zs  /\\t/g<CR>", { silent = true, desc = "2 spaces → tab (visual)" })
-map("v", "<leader>4f", ":'<,'>s/^\\(\\s*\\)\\zs    /\\t/g<CR>", { silent = true, desc = "4 spaces → tab (visual)" })
-map("v", "<leader>8f", ":'<,'>s/^\\(\\s*\\)\\zs        /\\t/g<CR>", { silent = true, desc = "8 spaces → tab (visual)" })
+
+-- Format substitutions for 2, 4, 8 spaces to tabs — visual and normal mode
+vim.cmd([[
+  vnoremap <leader>f  :s/  /\t/ge<CR>:'<,'>s/'/"/ge<CR>
+  nnoremap <leader>f  :s/  /\t/ge<CR>:s/'/"/ge<CR>
+  vnoremap <leader>2f :s/  /\t/ge<CR>:'<,'>s/'/"/ge<CR>
+  nnoremap <leader>2f :s/  /\t/ge<CR>:s/'/"/ge<CR>
+  vnoremap <leader>4f :s/    /\t/ge<CR>:'<,'>s/'/"/ge<CR>
+  nnoremap <leader>4f :s/    /\t/ge<CR>:s/'/"/ge<CR>
+  vnoremap <leader>8f :s/        /\t/ge<CR>:'<,'>s/'/"/ge<CR>
+  nnoremap <leader>8f :s/        /\t/ge<CR>:s/'/"/ge<CR>
+]])
 -- Global LSP formatter
 map("n", "<leader>F", ":lua vim.lsp.buf.format { async = true }<CR>", { silent = true })
 
