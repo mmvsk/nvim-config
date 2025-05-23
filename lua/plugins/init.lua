@@ -134,8 +134,10 @@ return {
 	{
 		"numToStr/Comment.nvim",
 		keys = {
-			{ "gcc", mode = "n",          desc = "Toggle comment line" },
-			{ "gc",  mode = { "n", "v" }, desc = "Toggle comment block" },
+			{ "gcc",        mode = "n",          desc = "Toggle comment line" },
+			{ "gc",         mode = { "n", "v" }, desc = "Toggle comment block" },
+			{ "<leader>cc", mode = "n",          desc = "Toggle comment line" },
+			{ "<leader>c",  mode = { "n", "v" }, desc = "Toggle comment block" },
 		},
 		config = function()
 			require("Comment").setup({
@@ -228,6 +230,91 @@ return {
 			{ "<leader>gd", "<cmd>DiffviewOpen<CR>",        desc = "Diff against HEAD" },
 			{ "<leader>gh", "<cmd>DiffviewFileHistory<CR>", desc = "File history (diffs)" },
 		}
+	},
+
+	-- markdown support
+	{
+		"preservim/vim-markdown",
+		ft = { "markdown" },
+		config = function()
+			-- vim-markdown config
+			vim.g.vim_markdown_new_list_item_indent = 0
+			vim.g.vim_markdown_auto_insert_bullets = 1
+			vim.g.vim_markdown_folding_disabled = 1
+
+			-- Custom checkbox toggle logic
+			local function toggle_checkbox()
+				local line = vim.api.nvim_get_current_line()
+				local cursor = vim.api.nvim_win_get_cursor(0)
+				local row = cursor[1] - 1
+
+				if line:match("^%s*%- %[ %]") then
+					line = line:gsub("%- %[ %]%s*", "- [x] ", 1)
+				elseif line:match("^%s*%- %[x%]") then
+					line = line:gsub("%- %[x%]%s*", "- ", 1)
+				elseif line:match("^%s*%- ?$") or line:match("^%s*%- %s+[^%[]") then
+  				line = line:gsub("%- %s*", "- [ ] ", 1)
+				else
+					return
+				end
+
+				vim.api.nvim_buf_set_lines(0, row, row + 1, false, { line })
+			end
+
+			-- Smart indentation that respects buffer settings
+
+			local function smart_indent(should_indent)
+				local line = vim.api.nvim_get_current_line()
+				local is_bullet = line:match("^%s*[%*-]%s*$")
+
+				if is_bullet then
+					-- Save cursor position
+					local col = vim.api.nvim_win_get_cursor(0)[2]
+
+					-- Use built-in indent commands
+					if should_indent then
+						vim.cmd("normal! >>")
+					else
+						vim.cmd("normal! <<")
+					end
+
+					-- Restore cursor to end of line if it was there
+					if col >= #line then
+						vim.api.nvim_win_set_cursor(0, { vim.api.nvim_win_get_cursor(0)[1], #vim.api.nvim_get_current_line() })
+					end
+				else
+					-- Fallback to normal tab behavior
+					if should_indent then
+						vim.api.nvim_input("<Tab>")
+					else
+						vim.api.nvim_input("<S-Tab>")
+					end
+				end
+			end
+
+			vim.api.nvim_create_autocmd("FileType", {
+				pattern = "markdown",
+				callback = function()
+					-- Toggle checkbox with <Space>
+					vim.keymap.set("n", "<Space>", toggle_checkbox, { buffer = true, silent = true })
+					-- Smart indentation in insert mode
+					vim.keymap.set("i", "<Tab>", function() smart_indent(true) end, { buffer = true })
+					vim.keymap.set("i", "<S-Tab>", function() smart_indent(false) end, { buffer = true })
+					-- Optional: Normal mode mappings if desired
+					vim.keymap.set("n", ">>", ">>", { buffer = true, remap = true })
+					vim.keymap.set("n", "<<", "<<", { buffer = true, remap = true })
+				end,
+			})
+		end,
+	},
+
+	{
+		"dkarter/bullets.vim",
+		ft = { "markdown", "text", "gitcommit" },
+		config = function()
+			vim.g.bullets_enabled_file_types = { "markdown", "text", "gitcommit" }
+			vim.g.bullets_outline_levels = { "num", "abc", "-", "*", "+" } -- whatever you prefer
+		end,
 	},
 
 
