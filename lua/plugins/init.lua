@@ -297,55 +297,73 @@ return {
 			vim.g.one_allow_italics = 1
 			vim.cmd("colorscheme one")
 
-			local BG_NORMAL    = "#282c34"
+			local BG_ACTIVE    = "#282c34"
 			local BG_INACTIVE  = "#252930"
 			local BG_TREE      = "#21252b"
-			local BORDER_COLOR = "#282c34"
 			local GUTTER_FG    = "#555b62"
+			local BORDER_COLOR = "#282c34"
 
-			-- Global highlights
-			vim.api.nvim_set_hl(0, "Normal", { bg = BG_NORMAL })
-			vim.api.nvim_set_hl(0, "LineNr", { bg = BG_NORMAL, fg = GUTTER_FG })
-			vim.api.nvim_set_hl(0, "SignColumn", { bg = BG_NORMAL })
-			vim.api.nvim_set_hl(0, "VertSplit", { fg = BORDER_COLOR, bg = BG_NORMAL })
-			vim.api.nvim_set_hl(0, "WinSeparator", { fg = BORDER_COLOR, bg = BG_NORMAL })
+			-- Active window
+			vim.api.nvim_set_hl(0, "Normal", { bg = BG_ACTIVE })
+			vim.api.nvim_set_hl(0, "LineNr", { fg = GUTTER_FG, bg = BG_ACTIVE })
+			vim.api.nvim_set_hl(0, "SignColumn", { bg = BG_ACTIVE })
+			vim.api.nvim_set_hl(0, "VertSplit", { fg = BORDER_COLOR, bg = BG_ACTIVE })
+			vim.api.nvim_set_hl(0, "WinSeparator", { fg = BORDER_COLOR, bg = BG_ACTIVE })
 
+			-- Inactive window
 			vim.api.nvim_set_hl(0, "NormalNC", { bg = BG_INACTIVE })
-			vim.api.nvim_set_hl(0, "LineNrNC", { bg = BG_INACTIVE, fg = GUTTER_FG })
+			vim.api.nvim_set_hl(0, "LineNrNC", { fg = GUTTER_FG, bg = BG_INACTIVE })
 			vim.api.nvim_set_hl(0, "SignColumnNC", { bg = BG_INACTIVE })
+			vim.api.nvim_set_hl(0, "VertSplitNC", { fg = BORDER_COLOR, bg = BG_INACTIVE })
+			vim.api.nvim_set_hl(0, "WinSeparatorNC", { fg = BORDER_COLOR, bg = BG_INACTIVE })
 
+			-- NvimTree static color
 			vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = BG_TREE })
+			vim.api.nvim_set_hl(0, "NvimTreeEndOfBuffer", { bg = BG_TREE })
+			vim.api.nvim_set_hl(0, "NvimTreeVertSplit", { fg = BG_TREE, bg = BG_TREE })
+			vim.api.nvim_set_hl(0, "TabLine", { bg = BG_TREE, fg = GUTTER_FG })
 
-			-- Update all window highlights
-			local function sync_window_colors()
+			-- Apply highlight per window dynamically
+			local function apply_winhighlight()
 				for _, win in ipairs(vim.api.nvim_list_wins()) do
 					local buf = vim.api.nvim_win_get_buf(win)
 					local ft = vim.api.nvim_buf_get_option(buf, "filetype")
 
 					if ft == "NvimTree" then
-						pcall(vim.api.nvim_win_set_option, win, "winhighlight", "Normal:NvimTreeNormal")
+						vim.api.nvim_win_set_option(win, "winhighlight",
+							"Normal:NvimTreeNormal,EndOfBuffer:NvimTreeEndOfBuffer,WinSeparator:NvimTreeVertSplit,VertSplit:NvimTreeVertSplit")
 					else
+						local is_current = (win == vim.api.nvim_get_current_win())
 						local hl = table.concat({
-							"Normal:Normal",
-							"NormalNC:NormalNC",
-							"LineNr:LineNr",
-							"LineNrNC:LineNrNC",
-							"SignColumn:SignColumn",
-							"SignColumnNC:SignColumnNC",
-							"VertSplit:VertSplit",
-							"WinSeparator:WinSeparator",
+							"Normal:" .. (is_current and "Normal" or "NormalNC"),
+							"SignColumn:" .. (is_current and "SignColumn" or "SignColumnNC"),
+							"LineNr:" .. (is_current and "LineNr" or "LineNrNC"),
+							"WinSeparator:" .. (is_current and "WinSeparator" or "WinSeparatorNC"),
+							"VertSplit:" .. (is_current and "VertSplit" or "VertSplitNC"),
 						}, ",")
-						pcall(vim.api.nvim_win_set_option, win, "winhighlight", hl)
+						vim.api.nvim_win_set_option(win, "winhighlight", hl)
 					end
 				end
 			end
 
 			vim.api.nvim_create_autocmd({ "WinEnter", "WinLeave", "BufWinEnter", "VimEnter" }, {
 				callback = function()
-					vim.defer_fn(sync_window_colors, 10)
+					vim.defer_fn(apply_winhighlight, 10)
 				end,
 			})
 		end,
 	},
+
+	--{
+	--	"navarasu/onedark.nvim",
+	--	priority = 1000, -- make sure to load this before all the other start plugins
+	--	config = function()
+	--		require('onedark').setup {
+	--			style = 'dark' -- dark, darker, cool, deep, warm, warmer
+	--		}
+	--		-- Enable theme
+	--		require('onedark').load()
+	--	end
+	--},
 
 }
