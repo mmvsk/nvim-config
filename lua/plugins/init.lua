@@ -137,16 +137,29 @@ return {
 		build = ":TSUpdate",
 		config = function()
 			require("nvim-treesitter.configs").setup {
-				ensure_installed = { "lua", "typescript", "tsx", "json", "html" },
+				ensure_installed = { "lua", "typescript", "markdown", "markdown_inline", "tsx", "json", "html" },
 				highlight = {
 					enable = true,
-					disable = function(_, buf)
+					additional_vim_regex_highlighting = false, -- Cleaner setup
+					--custom_captures = {
+					--	-- Customize markdown highlights
+					--	["text.uri"] = { underline = false },
+					--	["text.reference"] = { underline = false }
+					--},
+					disable = function(lang, buf)
+						-- blue list dashes, flickering link underline, so disable
+						if lang == "markdown" or lang == "markdown_inline" then
+							return true
+						end
+
 						local max = 100 * 1024
 						local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
 						return ok and stats and stats.size > max
 					end,
 				},
-				indent = { enable = true },
+				indent = {
+					enable = true,
+				},
 			}
 		end,
 	},
