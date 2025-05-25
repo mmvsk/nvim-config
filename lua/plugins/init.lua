@@ -381,6 +381,51 @@ return {
 		end,
 	},
 
+	{
+		"nvim-lualine/lualine.nvim",
+		dependencies = {
+			"nvim-tree/nvim-web-devicons",    -- optional, for file icons
+			"linrongbin16/lsp-progress.nvim", -- optional, for LSP progress in statusline
+		},
+		config = function()
+			-- Customize lualine sections
+			local function lsp_progress()
+				local progress = require("lsp-progress")
+				progress.setup()
+				return progress.progress()
+			end
+
+			require("lualine").setup({
+				options = {
+					--theme = "auto",
+					--component_separators = { left = "|", right = "|" },
+					--section_separators = { left = "", right = "" },
+					--disabled_filetypes = {
+					--	statusline = { "dashboard", "alpha", "starter" },
+					--},
+					globalstatus = true, -- single statusline for all windows
+				},
+				--sections = {
+				--	lualine_a = { "mode" },
+				--	lualine_b = { "branch", "diff", "diagnostics" },
+				--	lualine_c = { "filename" },
+				--	lualine_x = { lsp_progress, "encoding", "fileformat", "filetype" },
+				--	lualine_y = { "progress" },
+				--	lualine_z = { "location" },
+				--},
+				--inactive_sections = {
+				--	lualine_a = {},
+				--	lualine_b = {},
+				--	lualine_c = { "filename" },
+				--	lualine_x = { "location" },
+				--	lualine_y = {},
+				--	lualine_z = {},
+				--},
+				--extensions = { "neo-tree", "toggleterm", "quickfix" },
+			})
+		end,
+	},
+
 	--{
 	--	"navarasu/onedark.nvim",
 	--	priority = 1000, -- make sure to load this before all the other start plugins
