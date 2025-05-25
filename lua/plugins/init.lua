@@ -92,9 +92,9 @@ return {
 
 			--setup("ts_ls")  -- or typescript-tools for faster
 			lsp.ts_ls.setup {
-        --on_attach = on_attach,
-        --root_dir = lsp.util.root_pattern("package.json"), -- Or other project root marker
-        --single_file_support = false,
+				--on_attach = on_attach,
+				--root_dir = lsp.util.root_pattern("package.json"), -- Or other project root marker
+				--single_file_support = false,
 				init_options = {
 					preferences = {
 						experimentalTsGo = true,
@@ -365,6 +365,13 @@ return {
 				default_mappings = true, -- enable 'dm', 'm<space>', etc.
 			}
 		end,
+	},
+
+	-- mdx
+	{
+		"davidmh/mdx.nvim",
+		config = true,
+		dependencies = { "nvim-treesitter/nvim-treesitter" }
 	},
 
 	-- not in-your-face notifs
