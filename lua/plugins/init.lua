@@ -559,6 +559,9 @@ return {
 				options = {
 					theme = "onedark", -- auto, or a theme like onedark
 					globalstatus = true, -- single statusline for all windows
+					disabled_filetypes = {
+						statusline = { "NvimTree" },
+					},
 				},
 			})
 		end,
