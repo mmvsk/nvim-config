@@ -550,38 +550,16 @@ return {
 	--},
 
 	{
-		"nvim-lualine/lualine.nvim",
-		dependencies = {
-			"nvim-tree/nvim-web-devicons", -- optional, for file icons
-		},
-		config = function()
-			require("lualine").setup({
-				options = {
-					theme = "onedark", -- auto, or a theme like onedark
-					globalstatus = true, -- single statusline for all windows
-					disabled_filetypes = {
-						statusline = { "NvimTree" },
-					},
-				},
-			})
-		end,
-	},
-
-	-- Using Lazy
-	{
 		"navarasu/onedark.nvim",
-		priority = 1000, -- make sure to load this before all the other start plugins
+		priority = 1000,
 		config = function()
 			require("onedark").setup {
-				style = "dark", -- dark or darker
-				lualine = {
-					transparent = true,
-				},
+				style = "dark",
+				lualine = { transparent = true },
 			}
-			-- Enable theme
-			require("onedark").load()
 
-		end
+			require("onedark").load()
+		end,
 	},
 
 }
