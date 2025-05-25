@@ -73,10 +73,28 @@ return {
 	-- Native LSP support
 	{
 		"neovim/nvim-lspconfig",
+		dependencies = {
+			"williamboman/mason-lspconfig.nvim",
+			--"hrsh7th/cmp-nvim-lsp", -- for autocompletion
+		},
 		config = function()
 			local lsp = require("lspconfig")
+			--local capabilities = require("cmp_nvim_lsp").default_capabilities()
+
+			-- Common LSP setup with capabilities
+			local function setup(server)
+				lsp[server].setup({
+					--capabilities = capabilities,
+				})
+			end
+
 			lsp.tsserver = nil -- deprecated, replaced with ts_ls
-			lsp.ts_ls.setup {}
+
+			setup("ts_ls")  -- or typescript-tools for faster
+			setup("html")
+			setup("cssls")
+			setup("tailwindcss")
+			--lsp.tailwdind.setup {}
 			lsp.lua_ls.setup {
 				settings = {
 					Lua = {
@@ -84,6 +102,18 @@ return {
 					},
 				},
 			}
+
+			setup("clangd")     -- c/c++
+			setup("rust_analyzer") -- rust
+			setup("gopls")      -- go
+			setup("bashls")     -- bash
+			setup("yamlls")     -- yaml
+			setup("taplo")      -- toml; better than toml-lsp
+			setup("zls")        -- zig
+			setup("prismals")   -- prisma
+			setup("dockerls")   -- docker
+			setup("jsonls")     -- json
+			setup("pyright")    -- python by microsoft (alt is pylsp)
 		end,
 	},
 
@@ -127,7 +157,26 @@ return {
 		config = function()
 			require("mason-lspconfig").setup({
 				-- List of servers you want installed by default
-				ensure_installed = { "ts_ls", "lua_ls" },
+				ensure_installed = {
+					"ts_ls",
+					"html",
+					"cssls",
+					"tailwindcss",
+
+					"clangd",
+					"rust_analyzer",
+					"gopls",
+					"bashls",
+					"yamlls",
+					"taplo",
+					"zls",
+					"prismals",
+					"dockerls",
+					"jsonls",
+					"pyright",
+
+					"lua_ls",
+				},
 			})
 		end,
 	},
@@ -167,12 +216,20 @@ return {
 		config = function()
 			local npairs = require("nvim-autopairs")
 			local Rule = require("nvim-autopairs.rule")
-			npairs.setup { check_ts = true }
-			npairs.add_rules {
-				Rule("{ ", " }")
-						:with_pair(function(opts) return opts.line:sub(opts.col - 1, opts.col - 1) == "{" end)
-						:with_move(function(opts) return opts.char == "}" end),
+
+			npairs.setup {
+				check_ts = true,
+				enable_check_bracket_line = false, -- don't check brackets on current line
 			}
+
+			-- Add space between brackets for specific pairs
+			npairs.add_rules({
+				Rule(' ', ' ')
+					:with_pair(function(opts)
+						local pair = opts.line:sub(opts.col - 1, opts.col)
+						return vim.tbl_contains({ '()', '[]', '{}' }, pair)
+					end),
+			})
 		end,
 	},
 
@@ -182,7 +239,36 @@ return {
 		build = ":TSUpdate",
 		config = function()
 			require("nvim-treesitter.configs").setup {
-				ensure_installed = { "lua", "typescript", "markdown", "markdown_inline", "tsx", "json", "html" },
+				ensure_installed = {
+					"typescript",
+					"javascript",
+					"tsx",
+					"html",
+					"css",
+					"scss",
+					"c",
+					"cpp",
+					"rust",
+					"go",
+					"bash",
+					"make",
+					"zig",
+					"yaml",
+					"toml",
+					"json",
+					"json5",
+					"jsonc",
+					"prisma",
+					"dockerfile",
+					"markdown",
+					"markdown_inline",
+					"lua",
+					"vim",
+					"vimdoc",
+					"query",
+					"regex",
+					"comment",
+				},
 				highlight = {
 					enable = true,
 					additional_vim_regex_highlighting = false, -- Cleaner setup
@@ -193,9 +279,9 @@ return {
 					--},
 					disable = function(lang, buf)
 						-- blue list dashes, flickering link underline, so disable
-						if lang == "markdown" or lang == "markdown_inline" then
-							return true
-						end
+						--if lang == "markdown" or lang == "markdown_inline" then
+						--	return true
+						--end
 
 						local max = 100 * 1024
 						local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
@@ -206,6 +292,24 @@ return {
 					enable = true,
 				},
 			}
+		end,
+	},
+	-- Optional: Tailwind CSS colorizer
+	{
+		"roobert/tailwindcss-colorizer-cmp.nvim",
+		config = true,
+		after = "nvim-cmp",
+	},
+
+	-- Optional: Better Tailwind CSS integration
+	{
+		"NvChad/nvim-colorizer.lua",
+		config = function()
+			require("colorizer").setup({
+				user_default_options = {
+					tailwind = true,
+				},
+			})
 		end,
 	},
 

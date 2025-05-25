@@ -25,7 +25,8 @@ vim.opt.history = 1000
 vim.opt.swapfile = false
 vim.opt.backup = false
 vim.opt.writebackup = false
-vim.opt.undofile = true
+--vim.opt.undofile = true
+vim.opt.undofile = false
 
 -- UI
 vim.opt.mouse = "a"
