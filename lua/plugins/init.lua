@@ -84,8 +84,22 @@ return {
 
 
 	-- LSP installer
-	{ "williamboman/mason.nvim",           config = true },
-	{ "williamboman/mason-lspconfig.nvim", config = true },
+	{
+		"williamboman/mason.nvim",
+		config = true,
+		build = ":MasonUpdate",
+	},
+	{
+		"williamboman/mason-lspconfig.nvim",
+		--config = true,
+		dependencies = { "williamboman/mason.nvim" },
+		config = function()
+			require("mason-lspconfig").setup({
+				-- List of servers you want installed by default
+				ensure_installed = { "ts_ls", "lua_ls" },
+			})
+		end,
+	},
 
 	{ "editorconfig/editorconfig-vim" },
 
