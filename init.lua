@@ -53,7 +53,7 @@ vim.opt.showcmd = true
 vim.opt.shortmess:append("cI") -- I = suppress intro msg
 vim.opt.laststatus = 0 -- statusline (airline/lualine): 0 no show, 2 = different per split, 3 = one for all splits
 vim.opt.showtabline = 1 -- tabline: 0 no show, 1 = show if more than 1 tab, 2 = always show
-vim.opt.cmdheight = 1 -- do not even show the command bar
+vim.opt.cmdheight = 0 -- do not even show the command bar (1 would show)
 vim.opt.wildmenu = true
 vim.opt.wildignore = { "**/node_modules/**", "**/.git/**" }
 
@@ -169,6 +169,8 @@ vim.cmd([[
 map("n", "<leader>F", ":lua vim.lsp.buf.format { async = true }<CR>", { silent = true })
 
 
+local original_laststatus = vim.opt.laststatus:get()
+
 -- Load lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -177,3 +179,6 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup("plugins")
+
+
+vim.opt.laststatus = original_laststatus
