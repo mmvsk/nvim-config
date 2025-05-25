@@ -225,10 +225,10 @@ return {
 			-- Add space between brackets for specific pairs
 			npairs.add_rules({
 				Rule(' ', ' ')
-					:with_pair(function(opts)
-						local pair = opts.line:sub(opts.col - 1, opts.col)
-						return vim.tbl_contains({ '()', '[]', '{}' }, pair)
-					end),
+						:with_pair(function(opts)
+							local pair = opts.line:sub(opts.col - 1, opts.col)
+							return vim.tbl_contains({ '()', '[]', '{}' }, pair)
+						end),
 			})
 		end,
 	},
@@ -483,7 +483,9 @@ return {
 			vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = BG_TREE })
 			vim.api.nvim_set_hl(0, "NvimTreeEndOfBuffer", { bg = BG_TREE })
 			vim.api.nvim_set_hl(0, "NvimTreeVertSplit", { fg = BG_TREE, bg = BG_TREE })
+			vim.api.nvim_set_hl(0, "NvimTreeSignColumn", { bg = BG_TREE }) -- <--- Corrected NvimTreeSignColumn
 			vim.api.nvim_set_hl(0, "TabLine", { bg = BG_TREE, fg = GUTTER_FG })
+			vim.api.nvim_set_hl(0, "TabLineFill", { bg = BG_INACTIVE })
 
 			-- Apply highlight per window dynamically
 			local function apply_winhighlight()
@@ -493,7 +495,7 @@ return {
 
 					if ft == "NvimTree" then
 						vim.api.nvim_win_set_option(win, "winhighlight",
-							"Normal:NvimTreeNormal,EndOfBuffer:NvimTreeEndOfBuffer,WinSeparator:NvimTreeVertSplit,VertSplit:NvimTreeVertSplit")
+							"Normal:NvimTreeNormal,EndOfBuffer:NvimTreeEndOfBuffer,WinSeparator:NvimTreeVertSplit,VertSplit:NvimTreeVertSplit,SignColumn:NvimTreeSignColumn") -- <--- Added SignColumn to NvimTree winhighlight
 					else
 						local is_current = (win == vim.api.nvim_get_current_win())
 						local hl = table.concat({
