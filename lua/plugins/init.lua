@@ -512,6 +512,12 @@ return {
 			vim.api.nvim_set_hl(0, "TabLine", { bg = BG_TREE, fg = GUTTER_FG })
 			vim.api.nvim_set_hl(0, "TabLineFill", { bg = BG_INACTIVE })
 
+			-- Highlight TSX tags/attributes separately
+			vim.api.nvim_set_hl(0, "@tag",           { link = "Identifier" })
+			vim.api.nvim_set_hl(0, "@tag.attribute", { link = "Type" })
+			vim.api.nvim_set_hl(0, "@attribute",     { link = "Type" })
+			vim.api.nvim_set_hl(0, "@string",        { link = "String" })
+
 			-- Apply highlight per window dynamically
 			local function apply_winhighlight()
 				for _, win in ipairs(vim.api.nvim_list_wins()) do
