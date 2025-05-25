@@ -9,8 +9,35 @@ return {
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 		config = function()
 			require("nvim-tree").setup {
-				view = { width = 30 },
-				renderer = { group_empty = true },
+				disable_netrw = true,
+				hijack_netrw = true,
+				respect_buf_cwd = true,
+				sync_root_with_cwd = true,
+				-- NOT WORKING
+				--sync_root_with_cwd = false, -- disable auto-sync to global cwd
+				--respect_buf_cwd = true, -- use buffer-local cwd (so it respects lcd)
+				--update_cwd = true, -- update tree root when cwd changes
+				view = {
+					width = 30,
+					side = "left",
+					signcolumn = "yes",
+					number = false,
+					relativenumber = false,
+				},
+				renderer = {
+					group_empty = true,
+					indent_markers = {
+						enable = true,
+					},
+					icons = {
+						show = {
+							file = false,
+							folder = false,
+							folder_arrow = true,
+							git = true,
+						},
+					},
+				},
 				filters = {
 					dotfiles = false,
 					custom = {
@@ -21,18 +48,22 @@ return {
 				sort = {
 					sorter = "case_sensitive"
 				},
-				git = { enable = true, ignore = false },
-				-- NOT WORKING
-				--sync_root_with_cwd = false, -- disable auto-sync to global cwd
-				--respect_buf_cwd = true, -- use buffer-local cwd (so it respects lcd)
-				--update_cwd = true, -- update tree root when cwd changes
+				git = {
+					enable = true,
+					ignore = false,
+				},
 				on_attach = function(bufnr)
 					local api = require("nvim-tree.api")
 					local opts = { buffer = bufnr, noremap = true, silent = true }
 
+					-- Key mappings
 					vim.keymap.set("n", "o", api.node.open.edit, opts)
 					vim.keymap.set("n", "C", api.tree.change_root_to_node, opts)
 					vim.keymap.set("n", "u", api.tree.change_root_to_parent, opts)
+
+					-- Mouse mappings
+					vim.keymap.set("n", "<2-LeftMouse>", api.node.open.edit, opts)
+					vim.keymap.set("n", "<2-RightMouse>", api.tree.change_root_to_node, opts)
 				end,
 			}
 			vim.keymap.set("n", "<F4>", ":NvimTreeToggle<CR>", { silent = true })
@@ -384,7 +415,7 @@ return {
 	{
 		"nvim-lualine/lualine.nvim",
 		dependencies = {
-			"nvim-tree/nvim-web-devicons",    -- optional, for file icons
+			"nvim-tree/nvim-web-devicons", -- optional, for file icons
 			"linrongbin16/lsp-progress.nvim", -- optional, for LSP progress in statusline
 		},
 		config = function()
