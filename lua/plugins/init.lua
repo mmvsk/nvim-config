@@ -476,134 +476,109 @@ return {
 	},
 
 	-- Theme (One)
-	{
-		"rakr/vim-one",
-		lazy = false,
-		priority = 1000,
-		config = function()
-			vim.g.one_allow_italics = 1
-			vim.cmd("colorscheme one")
-
-			local BG_ACTIVE    = "#282c34"
-			local BG_INACTIVE  = "#252930"
-			local BG_TREE      = "#21252b"
-			local GUTTER_FG    = "#555b62"
-			local BORDER_COLOR = "#282c34"
-
-			-- Active window
-			vim.api.nvim_set_hl(0, "Normal", { bg = BG_ACTIVE })
-			vim.api.nvim_set_hl(0, "LineNr", { fg = GUTTER_FG, bg = BG_ACTIVE })
-			vim.api.nvim_set_hl(0, "SignColumn", { bg = BG_ACTIVE })
-			vim.api.nvim_set_hl(0, "VertSplit", { fg = BORDER_COLOR, bg = BG_ACTIVE })
-			vim.api.nvim_set_hl(0, "WinSeparator", { fg = BORDER_COLOR, bg = BG_ACTIVE })
-
-			-- Inactive window
-			vim.api.nvim_set_hl(0, "NormalNC", { bg = BG_INACTIVE })
-			vim.api.nvim_set_hl(0, "LineNrNC", { fg = GUTTER_FG, bg = BG_INACTIVE })
-			vim.api.nvim_set_hl(0, "SignColumnNC", { bg = BG_INACTIVE })
-			vim.api.nvim_set_hl(0, "VertSplitNC", { fg = BORDER_COLOR, bg = BG_INACTIVE })
-			vim.api.nvim_set_hl(0, "WinSeparatorNC", { fg = BORDER_COLOR, bg = BG_INACTIVE })
-
-			-- NvimTree static color
-			vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = BG_TREE })
-			vim.api.nvim_set_hl(0, "NvimTreeEndOfBuffer", { bg = BG_TREE })
-			vim.api.nvim_set_hl(0, "NvimTreeVertSplit", { fg = BG_TREE, bg = BG_TREE })
-			vim.api.nvim_set_hl(0, "NvimTreeSignColumn", { bg = BG_TREE }) -- <--- Corrected NvimTreeSignColumn
-			vim.api.nvim_set_hl(0, "TabLine", { bg = BG_TREE, fg = GUTTER_FG })
-			vim.api.nvim_set_hl(0, "TabLineFill", { bg = BG_INACTIVE })
-
-			-- Highlight TSX tags/attributes separately
-			vim.api.nvim_set_hl(0, "@tag",           { link = "Identifier" })
-			vim.api.nvim_set_hl(0, "@tag.attribute", { link = "Type" })
-			vim.api.nvim_set_hl(0, "@attribute",     { link = "Type" })
-			vim.api.nvim_set_hl(0, "@string",        { link = "String" })
-
-			-- Apply highlight per window dynamically
-			local function apply_winhighlight()
-				for _, win in ipairs(vim.api.nvim_list_wins()) do
-					local buf = vim.api.nvim_win_get_buf(win)
-					local ft = vim.api.nvim_buf_get_option(buf, "filetype")
-
-					if ft == "NvimTree" then
-						vim.api.nvim_win_set_option(win, "winhighlight",
-							"Normal:NvimTreeNormal,EndOfBuffer:NvimTreeEndOfBuffer,WinSeparator:NvimTreeVertSplit,VertSplit:NvimTreeVertSplit,SignColumn:NvimTreeSignColumn") -- <--- Added SignColumn to NvimTree winhighlight
-					else
-						local is_current = (win == vim.api.nvim_get_current_win())
-						local hl = table.concat({
-							"Normal:" .. (is_current and "Normal" or "NormalNC"),
-							"SignColumn:" .. (is_current and "SignColumn" or "SignColumnNC"),
-							"LineNr:" .. (is_current and "LineNr" or "LineNrNC"),
-							"WinSeparator:" .. (is_current and "WinSeparator" or "WinSeparatorNC"),
-							"VertSplit:" .. (is_current and "VertSplit" or "VertSplitNC"),
-						}, ",")
-						vim.api.nvim_win_set_option(win, "winhighlight", hl)
-					end
-				end
-			end
-
-			vim.api.nvim_create_autocmd({ "WinEnter", "WinLeave", "BufWinEnter", "VimEnter" }, {
-				callback = function()
-					vim.defer_fn(apply_winhighlight, 10)
-				end,
-			})
-		end,
-	},
+	--{
+	--	"rakr/vim-one",
+	--	lazy = false,
+	--	priority = 1000,
+	--	config = function()
+	--		vim.g.one_allow_italics = 1
+	--		vim.cmd("colorscheme one")
+	--
+	--		local BG_ACTIVE    = "#282c34"
+	--		local BG_INACTIVE  = "#252930"
+	--		local BG_TREE      = "#21252b"
+	--		local GUTTER_FG    = "#555b62"
+	--		local BORDER_COLOR = "#282c34"
+	--
+	--		-- Active window
+	--		vim.api.nvim_set_hl(0, "Normal", { bg = BG_ACTIVE })
+	--		vim.api.nvim_set_hl(0, "LineNr", { fg = GUTTER_FG, bg = BG_ACTIVE })
+	--		vim.api.nvim_set_hl(0, "SignColumn", { bg = BG_ACTIVE })
+	--		vim.api.nvim_set_hl(0, "VertSplit", { fg = BORDER_COLOR, bg = BG_ACTIVE })
+	--		vim.api.nvim_set_hl(0, "WinSeparator", { fg = BORDER_COLOR, bg = BG_ACTIVE })
+	--
+	--		-- Inactive window
+	--		vim.api.nvim_set_hl(0, "NormalNC", { bg = BG_INACTIVE })
+	--		vim.api.nvim_set_hl(0, "LineNrNC", { fg = GUTTER_FG, bg = BG_INACTIVE })
+	--		vim.api.nvim_set_hl(0, "SignColumnNC", { bg = BG_INACTIVE })
+	--		vim.api.nvim_set_hl(0, "VertSplitNC", { fg = BORDER_COLOR, bg = BG_INACTIVE })
+	--		vim.api.nvim_set_hl(0, "WinSeparatorNC", { fg = BORDER_COLOR, bg = BG_INACTIVE })
+	--
+	--		-- NvimTree static color
+	--		vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = BG_TREE })
+	--		vim.api.nvim_set_hl(0, "NvimTreeEndOfBuffer", { bg = BG_TREE })
+	--		vim.api.nvim_set_hl(0, "NvimTreeVertSplit", { fg = BG_TREE, bg = BG_TREE })
+	--		vim.api.nvim_set_hl(0, "NvimTreeSignColumn", { bg = BG_TREE }) -- <--- Corrected NvimTreeSignColumn
+	--		vim.api.nvim_set_hl(0, "TabLine", { bg = BG_TREE, fg = GUTTER_FG })
+	--		vim.api.nvim_set_hl(0, "TabLineFill", { bg = BG_INACTIVE })
+	--
+	--		-- Highlight TSX tags/attributes separately
+	--		vim.api.nvim_set_hl(0, "@tag",           { link = "Identifier" })
+	--		vim.api.nvim_set_hl(0, "@tag.attribute", { link = "Type" })
+	--		vim.api.nvim_set_hl(0, "@attribute",     { link = "Type" })
+	--		vim.api.nvim_set_hl(0, "@string",        { link = "String" })
+	--
+	--		-- Apply highlight per window dynamically
+	--		local function apply_winhighlight()
+	--			for _, win in ipairs(vim.api.nvim_list_wins()) do
+	--				local buf = vim.api.nvim_win_get_buf(win)
+	--				local ft = vim.api.nvim_buf_get_option(buf, "filetype")
+	--
+	--				if ft == "NvimTree" then
+	--					vim.api.nvim_win_set_option(win, "winhighlight",
+	--						"Normal:NvimTreeNormal,EndOfBuffer:NvimTreeEndOfBuffer,WinSeparator:NvimTreeVertSplit,VertSplit:NvimTreeVertSplit,SignColumn:NvimTreeSignColumn") -- <--- Added SignColumn to NvimTree winhighlight
+	--				else
+	--					local is_current = (win == vim.api.nvim_get_current_win())
+	--					local hl = table.concat({
+	--						"Normal:" .. (is_current and "Normal" or "NormalNC"),
+	--						"SignColumn:" .. (is_current and "SignColumn" or "SignColumnNC"),
+	--						"LineNr:" .. (is_current and "LineNr" or "LineNrNC"),
+	--						"WinSeparator:" .. (is_current and "WinSeparator" or "WinSeparatorNC"),
+	--						"VertSplit:" .. (is_current and "VertSplit" or "VertSplitNC"),
+	--					}, ",")
+	--					vim.api.nvim_win_set_option(win, "winhighlight", hl)
+	--				end
+	--			end
+	--		end
+	--
+	--		vim.api.nvim_create_autocmd({ "WinEnter", "WinLeave", "BufWinEnter", "VimEnter" }, {
+	--			callback = function()
+	--				vim.defer_fn(apply_winhighlight, 10)
+	--			end,
+	--		})
+	--	end,
+	--},
 
 	{
 		"nvim-lualine/lualine.nvim",
 		dependencies = {
 			"nvim-tree/nvim-web-devicons", -- optional, for file icons
-			"linrongbin16/lsp-progress.nvim", -- optional, for LSP progress in statusline
 		},
 		config = function()
-			-- Customize lualine sections
-			local function lsp_progress()
-				local progress = require("lsp-progress")
-				progress.setup()
-				return progress.progress()
-			end
-
 			require("lualine").setup({
 				options = {
-					--theme = "auto",
-					--component_separators = { left = "|", right = "|" },
-					--section_separators = { left = "", right = "" },
-					--disabled_filetypes = {
-					--	statusline = { "dashboard", "alpha", "starter" },
-					--},
+					theme = "onedark", -- auto, or a theme like onedark
 					globalstatus = true, -- single statusline for all windows
 				},
-				--sections = {
-				--	lualine_a = { "mode" },
-				--	lualine_b = { "branch", "diff", "diagnostics" },
-				--	lualine_c = { "filename" },
-				--	lualine_x = { lsp_progress, "encoding", "fileformat", "filetype" },
-				--	lualine_y = { "progress" },
-				--	lualine_z = { "location" },
-				--},
-				--inactive_sections = {
-				--	lualine_a = {},
-				--	lualine_b = {},
-				--	lualine_c = { "filename" },
-				--	lualine_x = { "location" },
-				--	lualine_y = {},
-				--	lualine_z = {},
-				--},
-				--extensions = { "neo-tree", "toggleterm", "quickfix" },
 			})
 		end,
 	},
 
-	--{
-	--	"navarasu/onedark.nvim",
-	--	priority = 1000, -- make sure to load this before all the other start plugins
-	--	config = function()
-	--		require('onedark').setup {
-	--			style = 'dark' -- dark, darker, cool, deep, warm, warmer
-	--		}
-	--		-- Enable theme
-	--		require('onedark').load()
-	--	end
-	--},
+	-- Using Lazy
+	{
+		"navarasu/onedark.nvim",
+		priority = 1000, -- make sure to load this before all the other start plugins
+		config = function()
+			require("onedark").setup {
+				style = "dark", -- dark or darker
+				lualine = {
+					transparent = true,
+				},
+			}
+			-- Enable theme
+			require("onedark").load()
+
+		end
+	},
 
 }
