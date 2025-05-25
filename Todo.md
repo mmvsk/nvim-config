@@ -1,10 +1,8 @@
 nvim new config todo
 ===
 
-- LUALINE:
-    - [ ] dim inactive window
-    - [ ] laststatus = 3
-
+- dim
+    - [ ] make that inactive window is dimmed
 
 - then
     - [ ] slow startup time
