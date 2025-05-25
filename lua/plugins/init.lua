@@ -128,6 +128,13 @@ return {
 		end,
 	},
 
+	-- ~/.config/nvim/lua/plugins.lua
+	{
+		"nvim-treesitter/playground",
+		cmd = "TSPlaygroundToggle",
+		dependencies = { "nvim-treesitter/nvim-treesitter" },
+	},
+
 	-- super fast got to place (use `s<sth>`)
 	-- {
 	-- 	"ggandor/leap.nvim",
