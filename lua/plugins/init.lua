@@ -90,7 +90,15 @@ return {
 
 			lsp.tsserver = nil -- deprecated, replaced with ts_ls
 
-			setup("ts_ls")  -- or typescript-tools for faster
+			--setup("ts_ls")  -- or typescript-tools for faster
+			lsp.ts_ls.setup {
+				init_options = {
+					preferences = {
+						experimentalTsGo = true,
+					},
+				},
+			}
+
 			setup("html")
 			setup("cssls")
 			setup("tailwindcss")
