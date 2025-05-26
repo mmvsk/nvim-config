@@ -475,6 +475,28 @@ return {
 		end,
 	},
 
+	{
+		"nvim-lualine/lualine.nvim",
+		dependencies = { "nvim-tree/nvim-web-devicons" },
+		config = function()
+			require("lualine").setup({
+				options = {
+					theme = "onedark", -- or: auto
+					icons_enabled = true,
+					--section_separators = "", -- clean look
+					--component_separators = "",
+					globalstatus = true, -- single statusline across splits
+					disabled_filetypes = {
+						statusline = {
+							"NvimTree",
+							"neo-tree",
+						},
+					},
+				},
+			})
+		end
+	},
+
 	-- Theme (One)
 	--{
 	--	"rakr/vim-one",
