@@ -57,8 +57,8 @@ vim.opt.wildmenu = true
 vim.opt.showtabline = 1 -- tabline: 0 no show, 1 = show if more than 1 tab, 2 = always show
 --vim.opt.laststatus = 0 -- statusline (airline/lualine): 0 no show, 2 = different per split, 3 = one for all splits
 --vim.opt.cmdheight = 0 -- do not even show the command bar (1 would show)
-vim.opt.laststatus = 2 -- statusline (airline/lualine): 0 no show, 2 = different per split, 3 = one for all splits
-vim.opt.cmdheight = 0 -- do not even show the command bar (1 would show)
+vim.opt.laststatus = 0 -- statusline (airline/lualine): 0 no show, 2 = different per split, 3 = one for all splits
+vim.opt.cmdheight = 1 -- do not even show the command bar (1 would show)
 
 -- Search
 vim.opt.ignorecase = false
