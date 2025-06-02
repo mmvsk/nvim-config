@@ -42,10 +42,10 @@ vim.opt.signcolumn = "yes"
 --vim.opt.colorcolumn = "81,101"
 vim.opt.list = true
 vim.opt.listchars = {
-  tab = "┊ ",
-  trail = "⋅",
-  extends = "▸",
-  precedes = "◂",
+	tab = "┊ ",
+	trail = "⋅",
+	extends = "▸",
+	precedes = "◂",
 }
 vim.opt.splitbelow = true
 vim.opt.splitright = true
@@ -58,7 +58,7 @@ vim.opt.showtabline = 1 -- tabline: 0 no show, 1 = show if more than 1 tab, 2 = 
 --vim.opt.laststatus = 0 -- statusline (airline/lualine): 0 no show, 2 = different per split, 3 = one for all splits
 --vim.opt.cmdheight = 0 -- do not even show the command bar (1 would show)
 vim.opt.laststatus = 0 -- statusline (airline/lualine): 0 no show, 2 = different per split, 3 = one for all splits
-vim.opt.cmdheight = 1 -- do not even show the command bar (1 would show)
+vim.opt.cmdheight = 1  -- do not even show the command bar (1 would show)
 
 -- Search
 vim.opt.ignorecase = false
@@ -87,36 +87,51 @@ vim.opt.clipboard = vim.fn.has("unnamedplus") == 1 and "unnamed,unnamedplus" or 
 
 -- Restore last cursor position
 vim.api.nvim_create_autocmd("BufReadPost", {
-  callback = function()
-    local pos = vim.fn.line([['"]])
-    if pos > 1 and pos <= vim.fn.line("$") then
-      vim.cmd("normal! g'\"")
-    end
-  end
+	callback = function()
+		local pos = vim.fn.line([['"]])
+		if pos > 1 and pos <= vim.fn.line("$") then
+			vim.cmd("normal! g'\"")
+		end
+	end
+})
+
+
+-- show error on hover
+vim.o.updatetime = 380 -- 0.5s of idle before `CursorHold` fires
+vim.api.nvim_create_autocmd("CursorHold", {
+	callback = function()
+		vim.diagnostic.open_float(nil, {
+			focusable = true, -- allow interaction with its text
+			border = "rounded",
+			source = "if_many", -- if_many or always
+			prefix = "", -- ???
+			scope = "cursor",
+		})
+	end,
 })
 
 -- JSONC & TS fixes
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-  pattern = { "tsconfig.json", "tsconfig.*.json" },
-  command = "set filetype=jsonc"
+	pattern = { "tsconfig.json", "tsconfig.*.json" },
+	command = "set filetype=jsonc"
 })
 vim.api.nvim_create_autocmd("BufEnter", {
-  pattern = { "*.js", "*.jsx", "*.ts", "*.tsx" },
-  command = "syntax sync fromstart"
+	pattern = { "*.js", "*.jsx", "*.ts", "*.tsx" },
+	command = "syntax sync fromstart"
 })
 vim.api.nvim_create_autocmd("BufLeave", {
-  pattern = { "*.js", "*.jsx", "*.ts", "*.tsx" },
-  command = "syntax sync clear"
+	pattern = { "*.js", "*.jsx", "*.ts", "*.tsx" },
+	command = "syntax sync clear"
 })
 
 -- rename tabs
 --vim.o.showtabline = 2
 vim.o.tabline = "%!v:lua.require'user.tabnames'.tabline()"
 vim.api.nvim_create_user_command("TabRename", function(opts)
-  require("user.tabnames").set(opts.args)
+	require("user.tabnames").set(opts.args)
 end, { nargs = 1 })
 vim.api.nvim_create_user_command("TabooRename", function(opts)
-  require("user.tabnames").set(opts.args)
+	require("user.tabnames").set(opts.args)
 end, { nargs = 1 })
 
 -- Keymaps
@@ -177,7 +192,7 @@ local original_laststatus = vim.opt.laststatus:get()
 -- Load lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system({ "git", "clone", "https://github.com/folke/lazy.nvim.git", lazypath })
+	vim.fn.system({ "git", "clone", "https://github.com/folke/lazy.nvim.git", lazypath })
 end
 vim.opt.rtp:prepend(lazypath)
 

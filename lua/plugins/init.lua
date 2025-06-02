@@ -70,6 +70,41 @@ return {
 		end,
 	},
 
+	{
+		"williamboman/mason-lspconfig.nvim",
+		--config = true,
+		dependencies = { "williamboman/mason.nvim" },
+		config = function()
+			require("mason-lspconfig").setup({
+				handlers = {
+					ts_ls = function() end,
+				},
+				-- List of servers you want installed by default
+				ensure_installed = {
+					--"ts_ls",
+
+					"html",
+					"cssls",
+					"tailwindcss",
+
+					"clangd",
+					"rust_analyzer",
+					"gopls",
+					"bashls",
+					"yamlls",
+					"taplo",
+					"zls",
+					"prismals",
+					"dockerls",
+					"jsonls",
+					"pyright",
+
+					"lua_ls",
+				},
+			})
+		end,
+	},
+
 	-- Native LSP support
 	{
 		"neovim/nvim-lspconfig",
@@ -91,16 +126,17 @@ return {
 			lsp.tsserver = nil -- deprecated, replaced with ts_ls
 
 			--setup("ts_ls")  -- or typescript-tools for faster
-			lsp.ts_ls.setup {
-				--on_attach = on_attach,
-				--root_dir = lsp.util.root_pattern("package.json"), -- Or other project root marker
-				--single_file_support = false,
-				init_options = {
-					preferences = {
-						experimentalTsGo = true,
-					},
-				},
-			}
+			--lsp.ts_ls.setup {
+			--	--on_attach = on_attach,
+			--	--root_dir = lsp.util.root_pattern("package.json"), -- Or other project root marker
+			--	--single_file_support = false,
+			--	init_options = {
+			--		preferences = {
+			--			experimentalTsGo = true,
+			--		},
+			--	},
+			--}
+			lsp.ts_ls = nil -- replaced by typescript-tools
 
 			setup("html")
 			setup("cssls")
@@ -125,6 +161,23 @@ return {
 			setup("dockerls")   -- docker
 			setup("jsonls")     -- json
 			setup("pyright")    -- python by microsoft (alt is pylsp)
+		end,
+	},
+
+	{
+		"pmizio/typescript-tools.nvim",
+		dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
+		config = function()
+			require("typescript-tools").setup({
+				settings = {
+					expose_as_code_action = {
+						"add_missing_imports",
+						"remove_unused",
+						"organize_imports",
+						"fix_all",
+					},
+				},
+			})
 		end,
 	},
 
@@ -167,36 +220,6 @@ return {
 		"williamboman/mason.nvim",
 		config = true,
 		build = ":MasonUpdate",
-	},
-	{
-		"williamboman/mason-lspconfig.nvim",
-		--config = true,
-		dependencies = { "williamboman/mason.nvim" },
-		config = function()
-			require("mason-lspconfig").setup({
-				-- List of servers you want installed by default
-				ensure_installed = {
-					"ts_ls",
-					"html",
-					"cssls",
-					"tailwindcss",
-
-					"clangd",
-					"rust_analyzer",
-					"gopls",
-					"bashls",
-					"yamlls",
-					"taplo",
-					"zls",
-					"prismals",
-					"dockerls",
-					"jsonls",
-					"pyright",
-
-					"lua_ls",
-				},
-			})
-		end,
 	},
 
 	{ "editorconfig/editorconfig-vim" },
