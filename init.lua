@@ -95,6 +95,9 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 	end
 })
 
+-- Make j/k move by display lines (wrapped lines)
+vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
+vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 
 -- show error on hover
 vim.o.updatetime = 380 -- 0.5s of idle before `CursorHold` fires
