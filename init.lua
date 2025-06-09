@@ -95,9 +95,19 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 	end
 })
 
--- Make j/k move by display lines (wrapped lines)
-vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
-vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
+-- Make j/k and arrows move by display lines (wrapped) unless a count is given
+--vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
+--vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
+vim.keymap.set('n', 'j',  [[v:count == 0 ? 'gj' : 'j']], { expr = true, silent = true })
+vim.keymap.set('n', 'k',  [[v:count == 0 ? 'gk' : 'k']], { expr = true, silent = true })
+vim.keymap.set('n', '<Down>', [[v:count == 0 ? 'gj' : 'j']], { expr = true, silent = true })
+vim.keymap.set('n', '<Up>',   [[v:count == 0 ? 'gk' : 'k']], { expr = true, silent = true })
+
+-- Optional: Apply to visual/operator-pending modes too
+vim.keymap.set('v', 'j',  [[v:count == 0 ? 'gj' : 'j']], { expr = true, silent = true })
+vim.keymap.set('v', 'k',  [[v:count == 0 ? 'gk' : 'k']], { expr = true, silent = true })
+vim.keymap.set('v', '<Down>', [[v:count == 0 ? 'gj' : 'j']], { expr = true, silent = true })
+vim.keymap.set('v', '<Up>',   [[v:count == 0 ? 'gk' : 'k']], { expr = true, silent = true })
 
 -- show error on hover
 vim.o.updatetime = 380 -- 0.5s of idle before `CursorHold` fires
