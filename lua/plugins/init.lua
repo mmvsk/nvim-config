@@ -108,6 +108,8 @@ return {
 	-- Native LSP support
 	{
 		"neovim/nvim-lspconfig",
+		-- the new version throws errors
+		commit = "060f6b601b8d60d59fb2f6dfb2528c391bcd60a2",
 		dependencies = {
 			"williamboman/mason-lspconfig.nvim",
 			--"hrsh7th/cmp-nvim-lsp", -- for autocompletion
@@ -605,6 +607,12 @@ return {
 
 			require("onedark").load()
 		end,
+	},
+
+		-- Slim template support
+	{
+		"slim-template/vim-slim",
+		ft = { "slim" },
 	},
 
 }
