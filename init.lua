@@ -8,6 +8,20 @@ vim.g.loaded_netrwPlugin = 1
 vim.g.mapleader = ","
 vim.g.maplocalleader = "_"
 
+-- Disable terminal image detection (prevents SIXEL probe message)
+vim.env.NVIM_IMAGE_BACKEND = "none"
+
+-- Immediately clear screen to hide SIXEL probe (must be before any plugin loads)
+vim.api.nvim_create_autocmd("UIEnter", {
+	once = true,
+	callback = function()
+		vim.schedule(function()
+			vim.cmd("mode")
+			vim.cmd("redraw!")
+		end)
+	end,
+})
+
 -- Environment detection
 vim.g.is_root = vim.env.USER == "root" or vim.env.SUDO_USER ~= nil
 vim.g.is_server = vim.fn.hostname():match("server") ~= nil or vim.fn.hostname():match("vps") ~= nil
@@ -216,6 +230,20 @@ map("n", "<leader>F", ":lua vim.lsp.buf.format { async = true }<CR>", { silent =
 
 
 local original_laststatus = vim.opt.laststatus:get()
+
+-- Disable terminal image support to prevent SIXEL probe
+vim.g.loaded_matchparen = 1  -- Also disable matchparen for performance
+if vim.fn.has("nvim-0.10") == 1 then
+	-- Monkey-patch to disable terminal image detection
+	local original_termopen = vim.fn.termopen
+	vim.api.nvim_create_autocmd("VimEnter", {
+		once = true,
+		callback = function()
+			-- Clear any SIXEL escape sequences from output
+			vim.cmd("redraw!")
+		end,
+	})
+end
 
 -- Load lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"

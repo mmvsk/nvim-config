@@ -79,7 +79,7 @@ return {
 	-- Statusline
 	{
 		"nvim-lualine/lualine.nvim",
-		event = "VeryLazy",
+		event = "BufReadPost",  -- Load after first buffer is read, not on VeryLazy
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 		config = function()
 			require("lualine").setup({
@@ -125,10 +125,11 @@ return {
 			}
 			vim.notify = notify
 
-			-- Filter to silence annoying reloads
+			-- Filter to silence annoying messages
 			local original = vim.notify
 			vim.notify = function(msg, level, opts)
 				if msg:match("config change detected") then return end
+				if msg:match("SIXEL") then return end
 				original(msg, level, opts)
 			end
 		end,
@@ -137,7 +138,7 @@ return {
 	-- Color highlighter (Tailwind CSS colors, etc)
 	{
 		"NvChad/nvim-colorizer.lua",
-		event = "BufReadPre",
+		event = "BufReadPost",  -- Load later to avoid startup probe
 		config = function()
 			require("colorizer").setup({
 				user_default_options = {
@@ -150,6 +151,7 @@ return {
 	-- Tailwind CSS colorizer for completion menu
 	{
 		"roobert/tailwindcss-colorizer-cmp.nvim",
+		lazy = true,  -- Only load when needed
 		config = true,
 		dependencies = { "nvim-cmp" },
 	},
