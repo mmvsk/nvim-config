@@ -13,10 +13,6 @@ return {
 				hijack_netrw = true,
 				respect_buf_cwd = true,
 				sync_root_with_cwd = true,
-				-- NOT WORKING
-				--sync_root_with_cwd = false, -- disable auto-sync to global cwd
-				--respect_buf_cwd = true, -- use buffer-local cwd (so it respects lcd)
-				--update_cwd = true, -- update tree root when cwd changes
 				view = {
 					width = 30,
 					side = "left",
@@ -72,17 +68,13 @@ return {
 
 	{
 		"williamboman/mason-lspconfig.nvim",
-		--config = true,
 		dependencies = { "williamboman/mason.nvim" },
 		config = function()
 			require("mason-lspconfig").setup({
 				handlers = {
 					ts_ls = function() end,
 				},
-				-- List of servers you want installed by default
 				ensure_installed = {
-					--"ts_ls",
-
 					"html",
 					"cssls",
 					"tailwindcss",
@@ -108,43 +100,29 @@ return {
 	-- Native LSP support
 	{
 		"neovim/nvim-lspconfig",
-		-- the new version throws errors
-		commit = "060f6b601b8d60d59fb2f6dfb2528c391bcd60a2",
 		dependencies = {
 			"williamboman/mason-lspconfig.nvim",
-			--"hrsh7th/cmp-nvim-lsp", -- for autocompletion
+			"hrsh7th/cmp-nvim-lsp",
 		},
 		config = function()
 			local lsp = require("lspconfig")
-			--local capabilities = require("cmp_nvim_lsp").default_capabilities()
+			local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
 			-- Common LSP setup with capabilities
 			local function setup(server)
 				lsp[server].setup({
-					--capabilities = capabilities,
+					capabilities = capabilities,
 				})
 			end
 
 			lsp.tsserver = nil -- deprecated, replaced with ts_ls
-
-			--setup("ts_ls")  -- or typescript-tools for faster
-			--lsp.ts_ls.setup {
-			--	--on_attach = on_attach,
-			--	--root_dir = lsp.util.root_pattern("package.json"), -- Or other project root marker
-			--	--single_file_support = false,
-			--	init_options = {
-			--		preferences = {
-			--			experimentalTsGo = true,
-			--		},
-			--	},
-			--}
 			lsp.ts_ls = nil -- replaced by typescript-tools
 
 			setup("html")
 			setup("cssls")
 			setup("tailwindcss")
-			--lsp.tailwdind.setup {}
 			lsp.lua_ls.setup {
+				capabilities = capabilities,
 				settings = {
 					Lua = {
 						diagnostics = { globals = { "vim" } },
@@ -183,20 +161,11 @@ return {
 		end,
 	},
 
-	-- ~/.config/nvim/lua/plugins.lua
 	{
 		"nvim-treesitter/playground",
 		cmd = "TSPlaygroundToggle",
 		dependencies = { "nvim-treesitter/nvim-treesitter" },
 	},
-
-	-- super fast got to place (use `s<sth>`)
-	-- {
-	-- 	"ggandor/leap.nvim",
-	-- 	config = function()
-	-- 		require("leap").add_default_mappings()
-	-- 	end,
-	-- },
 
 	-- modern tagbar
 	{
@@ -232,6 +201,8 @@ return {
 		"hrsh7th/nvim-cmp",
 		dependencies = {
 			"hrsh7th/cmp-nvim-lsp",
+			"hrsh7th/cmp-buffer",
+			"hrsh7th/cmp-path",
 			"L3MON4D3/LuaSnip",
 			"saadparwaiz1/cmp_luasnip",
 		},
@@ -247,6 +218,8 @@ return {
 				sources = {
 					{ name = "nvim_lsp" },
 					{ name = "luasnip" },
+					{ name = "buffer" },
+					{ name = "path" },
 				},
 			}
 		end,
@@ -314,18 +287,8 @@ return {
 				},
 				highlight = {
 					enable = true,
-					additional_vim_regex_highlighting = false, -- Cleaner setup
-					--custom_captures = {
-					--	-- Customize markdown highlights
-					--	["text.uri"] = { underline = false },
-					--	["text.reference"] = { underline = false }
-					--},
+					additional_vim_regex_highlighting = false,
 					disable = function(lang, buf)
-						-- blue list dashes, flickering link underline, so disable
-						--if lang == "markdown" or lang == "markdown_inline" then
-						--	return true
-						--end
-
 						local max = 100 * 1024
 						local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
 						return ok and stats and stats.size > max
@@ -341,7 +304,7 @@ return {
 	{
 		"roobert/tailwindcss-colorizer-cmp.nvim",
 		config = true,
-		after = "nvim-cmp",
+		dependencies = { "nvim-cmp" },
 	},
 
 	-- Optional: Better Tailwind CSS integration
@@ -413,15 +376,13 @@ return {
 		config = function()
 			local notify = require("notify")
 			notify.setup {
-				--background_colour = "#000000",
 				timeout = 2000,
-				--stages = "fade", -- or "static"
 				stages = "static",
 				top_down = false,
 			}
 			vim.notify = notify
 
-			-- Optional filter to silence annoying reloads
+			-- Filter to silence annoying reloads
 			local original = vim.notify
 			vim.notify = function(msg, level, opts)
 				if msg:match("config change detected") then return end
@@ -490,27 +451,15 @@ return {
 	},
 
 
-	-- Theme (Gruvbox)
-	{
-		"morhetz/gruvbox",
-		lazy = false,
-		priority = 1000,
-		config = function()
-			--vim.cmd("colorscheme gruvbox") --
-		end,
-	},
-
 	{
 		"nvim-lualine/lualine.nvim",
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 		config = function()
 			require("lualine").setup({
 				options = {
-					theme = "onedark", -- or: auto
+					theme = "onedark",
 					icons_enabled = true,
-					--section_separators = "", -- clean look
-					--component_separators = "",
-					globalstatus = true, -- single statusline across splits
+					globalstatus = true,
 					disabled_filetypes = {
 						statusline = {
 							"NvimTree",
@@ -521,80 +470,6 @@ return {
 			})
 		end
 	},
-
-	-- Theme (One)
-	--{
-	--	"rakr/vim-one",
-	--	lazy = false,
-	--	priority = 1000,
-	--	config = function()
-	--		vim.g.one_allow_italics = 1
-	--		vim.cmd("colorscheme one")
-	--
-	--		local BG_ACTIVE    = "#282c34"
-	--		local BG_INACTIVE  = "#252930"
-	--		local BG_TREE      = "#21252b"
-	--		local GUTTER_FG    = "#555b62"
-	--		local BORDER_COLOR = "#282c34"
-	--
-	--		-- Active window
-	--		vim.api.nvim_set_hl(0, "Normal", { bg = BG_ACTIVE })
-	--		vim.api.nvim_set_hl(0, "LineNr", { fg = GUTTER_FG, bg = BG_ACTIVE })
-	--		vim.api.nvim_set_hl(0, "SignColumn", { bg = BG_ACTIVE })
-	--		vim.api.nvim_set_hl(0, "VertSplit", { fg = BORDER_COLOR, bg = BG_ACTIVE })
-	--		vim.api.nvim_set_hl(0, "WinSeparator", { fg = BORDER_COLOR, bg = BG_ACTIVE })
-	--
-	--		-- Inactive window
-	--		vim.api.nvim_set_hl(0, "NormalNC", { bg = BG_INACTIVE })
-	--		vim.api.nvim_set_hl(0, "LineNrNC", { fg = GUTTER_FG, bg = BG_INACTIVE })
-	--		vim.api.nvim_set_hl(0, "SignColumnNC", { bg = BG_INACTIVE })
-	--		vim.api.nvim_set_hl(0, "VertSplitNC", { fg = BORDER_COLOR, bg = BG_INACTIVE })
-	--		vim.api.nvim_set_hl(0, "WinSeparatorNC", { fg = BORDER_COLOR, bg = BG_INACTIVE })
-	--
-	--		-- NvimTree static color
-	--		vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = BG_TREE })
-	--		vim.api.nvim_set_hl(0, "NvimTreeEndOfBuffer", { bg = BG_TREE })
-	--		vim.api.nvim_set_hl(0, "NvimTreeVertSplit", { fg = BG_TREE, bg = BG_TREE })
-	--		vim.api.nvim_set_hl(0, "NvimTreeSignColumn", { bg = BG_TREE }) -- <--- Corrected NvimTreeSignColumn
-	--		vim.api.nvim_set_hl(0, "TabLine", { bg = BG_TREE, fg = GUTTER_FG })
-	--		vim.api.nvim_set_hl(0, "TabLineFill", { bg = BG_INACTIVE })
-	--
-	--		-- Highlight TSX tags/attributes separately
-	--		vim.api.nvim_set_hl(0, "@tag",           { link = "Identifier" })
-	--		vim.api.nvim_set_hl(0, "@tag.attribute", { link = "Type" })
-	--		vim.api.nvim_set_hl(0, "@attribute",     { link = "Type" })
-	--		vim.api.nvim_set_hl(0, "@string",        { link = "String" })
-	--
-	--		-- Apply highlight per window dynamically
-	--		local function apply_winhighlight()
-	--			for _, win in ipairs(vim.api.nvim_list_wins()) do
-	--				local buf = vim.api.nvim_win_get_buf(win)
-	--				local ft = vim.api.nvim_buf_get_option(buf, "filetype")
-	--
-	--				if ft == "NvimTree" then
-	--					vim.api.nvim_win_set_option(win, "winhighlight",
-	--						"Normal:NvimTreeNormal,EndOfBuffer:NvimTreeEndOfBuffer,WinSeparator:NvimTreeVertSplit,VertSplit:NvimTreeVertSplit,SignColumn:NvimTreeSignColumn") -- <--- Added SignColumn to NvimTree winhighlight
-	--				else
-	--					local is_current = (win == vim.api.nvim_get_current_win())
-	--					local hl = table.concat({
-	--						"Normal:" .. (is_current and "Normal" or "NormalNC"),
-	--						"SignColumn:" .. (is_current and "SignColumn" or "SignColumnNC"),
-	--						"LineNr:" .. (is_current and "LineNr" or "LineNrNC"),
-	--						"WinSeparator:" .. (is_current and "WinSeparator" or "WinSeparatorNC"),
-	--						"VertSplit:" .. (is_current and "VertSplit" or "VertSplitNC"),
-	--					}, ",")
-	--					vim.api.nvim_win_set_option(win, "winhighlight", hl)
-	--				end
-	--			end
-	--		end
-	--
-	--		vim.api.nvim_create_autocmd({ "WinEnter", "WinLeave", "BufWinEnter", "VimEnter" }, {
-	--			callback = function()
-	--				vim.defer_fn(apply_winhighlight, 10)
-	--			end,
-	--		})
-	--	end,
-	--},
 
 	{
 		"navarasu/onedark.nvim",

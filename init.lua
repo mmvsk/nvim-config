@@ -20,13 +20,12 @@ vim.opt.ttimeout = true
 vim.opt.ttimeoutlen = 0
 vim.opt.timeout = true
 vim.opt.timeoutlen = 800
-vim.opt.updatetime = 500
 vim.opt.history = 1000
 vim.opt.swapfile = false
 vim.opt.backup = false
 vim.opt.writebackup = false
---vim.opt.undofile = true
-vim.opt.undofile = false
+vim.opt.undofile = true
+vim.opt.undodir = vim.fn.stdpath("data") .. "/undo"
 
 -- UI
 vim.opt.mouse = "a"
@@ -39,7 +38,6 @@ vim.opt.cursorline = false
 vim.opt.scrolloff = 4
 vim.opt.sidescrolloff = 4
 vim.opt.signcolumn = "yes"
---vim.opt.colorcolumn = "81,101"
 vim.opt.list = true
 vim.opt.listchars = {
 	tab = "┊ ",
@@ -55,10 +53,8 @@ vim.opt.shortmess:append("cI") -- I = suppress intro msg
 vim.opt.wildignore = { "**/node_modules/**", "**/.git/**" }
 vim.opt.wildmenu = true
 vim.opt.showtabline = 1 -- tabline: 0 no show, 1 = show if more than 1 tab, 2 = always show
---vim.opt.laststatus = 0 -- statusline (airline/lualine): 0 no show, 2 = different per split, 3 = one for all splits
---vim.opt.cmdheight = 0 -- do not even show the command bar (1 would show)
 vim.opt.laststatus = 0 -- statusline (airline/lualine): 0 no show, 2 = different per split, 3 = one for all splits
-vim.opt.cmdheight = 1  -- do not even show the command bar (1 would show)
+vim.opt.cmdheight = 1
 
 -- Search
 vim.opt.ignorecase = false
@@ -96,8 +92,6 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 })
 
 -- Make j/k and arrows move by display lines (wrapped) unless a count is given
---vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
---vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j',  [[v:count == 0 ? 'gj' : 'j']], { expr = true, silent = true })
 vim.keymap.set('n', 'k',  [[v:count == 0 ? 'gk' : 'k']], { expr = true, silent = true })
 vim.keymap.set('n', '<Down>', [[v:count == 0 ? 'gj' : 'j']], { expr = true, silent = true })
@@ -138,7 +132,6 @@ vim.api.nvim_create_autocmd("BufLeave", {
 })
 
 -- rename tabs
---vim.o.showtabline = 2
 vim.o.tabline = "%!v:lua.require'user.tabnames'.tabline()"
 vim.api.nvim_create_user_command("TabRename", function(opts)
 	require("user.tabnames").set(opts.args)
@@ -177,6 +170,7 @@ map("n", "<F6>", ":b#<CR>", { silent = true })
 map("v", "<", "<gv")
 map("v", ">", ">gv")
 
+-- Wrap current line at 80 chars at the last space (useful for markdown paragraphs)
 map("n", "<F1>", "081l?\\s\\+<CR>cw<CR><esc>", { silent = true })
 map("n", "<F2>", ":set wrap!<CR>:set linebreak!<CR>", { silent = true })
 
@@ -186,16 +180,14 @@ map("n", "<leader>y", ":%y+<CR>", { silent = true, desc = "Yank entire buffer" }
 
 
 -- Format substitutions for 2, 4, 8 spaces to tabs — visual and normal mode
-vim.cmd([[
-  vnoremap <leader>f  :s/  /\t/ge<CR>:'<,'>s/'/"/ge<CR>
-  nnoremap <leader>f  :s/  /\t/ge<CR>:s/'/"/ge<CR>
-  vnoremap <leader>2f :s/  /\t/ge<CR>:'<,'>s/'/"/ge<CR>
-  nnoremap <leader>2f :s/  /\t/ge<CR>:s/'/"/ge<CR>
-  vnoremap <leader>4f :s/    /\t/ge<CR>:'<,'>s/'/"/ge<CR>
-  nnoremap <leader>4f :s/    /\t/ge<CR>:s/'/"/ge<CR>
-  vnoremap <leader>8f :s/        /\t/ge<CR>:'<,'>s/'/"/ge<CR>
-  nnoremap <leader>8f :s/        /\t/ge<CR>:s/'/"/ge<CR>
-]])
+map("v", "<leader>f", ":s/  /\\t/ge<CR>:'<,'>s/'/\"/ge<CR>", { silent = true })
+map("n", "<leader>f", ":s/  /\\t/ge<CR>:s/'/\"/ge<CR>", { silent = true })
+map("v", "<leader>2f", ":s/  /\\t/ge<CR>:'<,'>s/'/\"/ge<CR>", { silent = true })
+map("n", "<leader>2f", ":s/  /\\t/ge<CR>:s/'/\"/ge<CR>", { silent = true })
+map("v", "<leader>4f", ":s/    /\\t/ge<CR>:'<,'>s/'/\"/ge<CR>", { silent = true })
+map("n", "<leader>4f", ":s/    /\\t/ge<CR>:s/'/\"/ge<CR>", { silent = true })
+map("v", "<leader>8f", ":s/        /\\t/ge<CR>:'<,'>s/'/\"/ge<CR>", { silent = true })
+map("n", "<leader>8f", ":s/        /\\t/ge<CR>:s/'/\"/ge<CR>", { silent = true })
 -- Global LSP formatter
 map("n", "<leader>F", ":lua vim.lsp.buf.format { async = true }<CR>", { silent = true })
 
