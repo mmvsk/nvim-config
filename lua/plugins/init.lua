@@ -105,42 +105,54 @@ return {
 			"hrsh7th/cmp-nvim-lsp",
 		},
 		config = function()
-			local lsp = require("lspconfig")
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-			-- Common LSP setup with capabilities
-			local function setup(server)
-				lsp[server].setup({
-					capabilities = capabilities,
-				})
-			end
+			-- Default config for most servers
+			local default_config = {
+				capabilities = capabilities,
+			}
 
-			lsp.tsserver = nil -- deprecated, replaced with ts_ls
-			lsp.ts_ls = nil -- replaced by typescript-tools
-
-			setup("html")
-			setup("cssls")
-			setup("tailwindcss")
-			lsp.lua_ls.setup {
+			-- Configure each server
+			vim.lsp.config("html", default_config)
+			vim.lsp.config("cssls", default_config)
+			vim.lsp.config("tailwindcss", default_config)
+			vim.lsp.config("lua_ls", {
 				capabilities = capabilities,
 				settings = {
 					Lua = {
 						diagnostics = { globals = { "vim" } },
 					},
 				},
-			}
+			})
 
-			setup("clangd")     -- c/c++
-			setup("rust_analyzer") -- rust
-			setup("gopls")      -- go
-			setup("bashls")     -- bash
-			setup("yamlls")     -- yaml
-			setup("taplo")      -- toml; better than toml-lsp
-			setup("zls")        -- zig
-			setup("prismals")   -- prisma
-			setup("dockerls")   -- docker
-			setup("jsonls")     -- json
-			setup("pyright")    -- python by microsoft (alt is pylsp)
+			vim.lsp.config("clangd", default_config)     -- c/c++
+			vim.lsp.config("rust_analyzer", default_config) -- rust
+			vim.lsp.config("gopls", default_config)      -- go
+			vim.lsp.config("bashls", default_config)     -- bash
+			vim.lsp.config("yamlls", default_config)     -- yaml
+			vim.lsp.config("taplo", default_config)      -- toml; better than toml-lsp
+			vim.lsp.config("zls", default_config)        -- zig
+			vim.lsp.config("prismals", default_config)   -- prisma
+			vim.lsp.config("dockerls", default_config)   -- docker
+			vim.lsp.config("jsonls", default_config)     -- json
+			vim.lsp.config("pyright", default_config)    -- python by microsoft (alt is pylsp)
+
+			-- Enable servers
+			vim.lsp.enable("html")
+			vim.lsp.enable("cssls")
+			vim.lsp.enable("tailwindcss")
+			vim.lsp.enable("lua_ls")
+			vim.lsp.enable("clangd")
+			vim.lsp.enable("rust_analyzer")
+			vim.lsp.enable("gopls")
+			vim.lsp.enable("bashls")
+			vim.lsp.enable("yamlls")
+			vim.lsp.enable("taplo")
+			vim.lsp.enable("zls")
+			vim.lsp.enable("prismals")
+			vim.lsp.enable("dockerls")
+			vim.lsp.enable("jsonls")
+			vim.lsp.enable("pyright")
 		end,
 	},
 
