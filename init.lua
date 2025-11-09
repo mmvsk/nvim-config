@@ -27,6 +27,10 @@ vim.opt.writebackup = false
 vim.opt.undofile = true
 vim.opt.undodir = vim.fn.stdpath("data") .. "/undo"
 
+-- Additional performance tweaks
+vim.opt.synmaxcol = 300  -- Don't syntax highlight super long lines
+vim.opt.redrawtime = 1500  -- Time in ms for redrawing the screen
+
 -- UI
 vim.opt.mouse = "a"
 vim.opt.mousehide = true
@@ -103,32 +107,21 @@ vim.keymap.set('v', 'k',  [[v:count == 0 ? 'gk' : 'k']], { expr = true, silent =
 vim.keymap.set('v', '<Down>', [[v:count == 0 ? 'gj' : 'j']], { expr = true, silent = true })
 vim.keymap.set('v', '<Up>',   [[v:count == 0 ? 'gk' : 'k']], { expr = true, silent = true })
 
--- show error on hover
-vim.o.updatetime = 380 -- 0.5s of idle before `CursorHold` fires
-vim.api.nvim_create_autocmd("CursorHold", {
-	callback = function()
-		vim.diagnostic.open_float(nil, {
-			focusable = true, -- allow interaction with its text
-			border = "rounded",
-			source = "if_many", -- if_many or always
-			prefix = "", -- ???
-			scope = "cursor",
-		})
-	end,
-})
+-- Show diagnostics on hover (manual with gl or <leader>d, automatic is too slow)
+vim.o.updatetime = 300
+vim.keymap.set("n", "gl", vim.diagnostic.open_float, { desc = "Show diagnostic" })
+vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { desc = "Show diagnostic" })
 
--- JSONC & TS fixes
+-- JSONC filetype fix
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
 	pattern = { "tsconfig.json", "tsconfig.*.json" },
 	command = "set filetype=jsonc"
 })
-vim.api.nvim_create_autocmd("BufEnter", {
+
+-- JS/TS syntax sync (only on BufRead, not every BufEnter to avoid lag)
+vim.api.nvim_create_autocmd("BufReadPost", {
 	pattern = { "*.js", "*.jsx", "*.ts", "*.tsx" },
 	command = "syntax sync fromstart"
-})
-vim.api.nvim_create_autocmd("BufLeave", {
-	pattern = { "*.js", "*.jsx", "*.ts", "*.tsx" },
-	command = "syntax sync clear"
 })
 
 -- rename tabs

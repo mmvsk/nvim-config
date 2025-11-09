@@ -5,7 +5,8 @@ return {
 	-- File tree (NERDTree replacement)
 	{
 		"nvim-tree/nvim-tree.lua",
-		lazy = false,
+		cmd = { "NvimTreeToggle", "NvimTreeFocus", "NvimTreeOpen" },
+		keys = { { "<F4>", "<cmd>NvimTreeToggle<CR>", desc = "Toggle file tree" } },
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 		config = function()
 			require("nvim-tree").setup {
@@ -62,7 +63,6 @@ return {
 					vim.keymap.set("n", "<2-RightMouse>", api.tree.change_root_to_node, opts)
 				end,
 			}
-			vim.keymap.set("n", "<F4>", ":NvimTreeToggle<CR>", { silent = true })
 		end,
 	},
 
@@ -107,37 +107,74 @@ return {
 		config = function()
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-			-- Default config for most servers
-			local default_config = {
+			-- Configure servers with filetypes (only start when needed)
+			vim.lsp.config("html", {
 				capabilities = capabilities,
-			}
-
-			-- Configure each server
-			vim.lsp.config("html", default_config)
-			vim.lsp.config("cssls", default_config)
-			vim.lsp.config("tailwindcss", default_config)
+				filetypes = { "html" },
+			})
+			vim.lsp.config("cssls", {
+				capabilities = capabilities,
+				filetypes = { "css", "scss", "less" },
+			})
+			vim.lsp.config("tailwindcss", {
+				capabilities = capabilities,
+				filetypes = { "html", "css", "javascript", "javascriptreact", "typescript", "typescriptreact" },
+			})
 			vim.lsp.config("lua_ls", {
 				capabilities = capabilities,
+				filetypes = { "lua" },
 				settings = {
 					Lua = {
 						diagnostics = { globals = { "vim" } },
 					},
 				},
 			})
+			vim.lsp.config("clangd", {
+				capabilities = capabilities,
+				filetypes = { "c", "cpp", "objc", "objcpp" },
+			})
+			vim.lsp.config("rust_analyzer", {
+				capabilities = capabilities,
+				filetypes = { "rust" },
+			})
+			vim.lsp.config("gopls", {
+				capabilities = capabilities,
+				filetypes = { "go", "gomod", "gowork", "gotmpl" },
+			})
+			vim.lsp.config("bashls", {
+				capabilities = capabilities,
+				filetypes = { "sh", "bash" },
+			})
+			vim.lsp.config("yamlls", {
+				capabilities = capabilities,
+				filetypes = { "yaml", "yaml.docker-compose" },
+			})
+			vim.lsp.config("taplo", {
+				capabilities = capabilities,
+				filetypes = { "toml" },
+			})
+			vim.lsp.config("zls", {
+				capabilities = capabilities,
+				filetypes = { "zig" },
+			})
+			vim.lsp.config("prismals", {
+				capabilities = capabilities,
+				filetypes = { "prisma" },
+			})
+			vim.lsp.config("dockerls", {
+				capabilities = capabilities,
+				filetypes = { "dockerfile" },
+			})
+			vim.lsp.config("jsonls", {
+				capabilities = capabilities,
+				filetypes = { "json", "jsonc" },
+			})
+			vim.lsp.config("pyright", {
+				capabilities = capabilities,
+				filetypes = { "python" },
+			})
 
-			vim.lsp.config("clangd", default_config)     -- c/c++
-			vim.lsp.config("rust_analyzer", default_config) -- rust
-			vim.lsp.config("gopls", default_config)      -- go
-			vim.lsp.config("bashls", default_config)     -- bash
-			vim.lsp.config("yamlls", default_config)     -- yaml
-			vim.lsp.config("taplo", default_config)      -- toml; better than toml-lsp
-			vim.lsp.config("zls", default_config)        -- zig
-			vim.lsp.config("prismals", default_config)   -- prisma
-			vim.lsp.config("dockerls", default_config)   -- docker
-			vim.lsp.config("jsonls", default_config)     -- json
-			vim.lsp.config("pyright", default_config)    -- python by microsoft (alt is pylsp)
-
-			-- Enable servers
+			-- Enable servers (will auto-start based on filetypes above)
 			vim.lsp.enable("html")
 			vim.lsp.enable("cssls")
 			vim.lsp.enable("tailwindcss")
@@ -211,6 +248,7 @@ return {
 	-- Autocompletion (like CoC but native)
 	{
 		"hrsh7th/nvim-cmp",
+		event = "InsertEnter",
 		dependencies = {
 			"hrsh7th/cmp-nvim-lsp",
 			"hrsh7th/cmp-buffer",
@@ -384,7 +422,7 @@ return {
 	-- not in-your-face notifs
 	{
 		"rcarriga/nvim-notify",
-		lazy = false,
+		event = "VeryLazy",
 		config = function()
 			local notify = require("notify")
 			notify.setup {
@@ -465,6 +503,7 @@ return {
 
 	{
 		"nvim-lualine/lualine.nvim",
+		event = "VeryLazy",
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 		config = function()
 			require("lualine").setup({
