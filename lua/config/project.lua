@@ -1,3 +1,6 @@
+-- Project-specific overrides (sourced from another config directory)
+-- Loads the main config first, then applies project overrides
+
 dofile(vim.fn.stdpath("config") .. "/init.lua")
 
 vim.opt.colorcolumn = "81,101"

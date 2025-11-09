@@ -8,6 +8,21 @@ vim.g.loaded_netrwPlugin = 1
 vim.g.mapleader = ","
 vim.g.maplocalleader = "_"
 
+-- Environment detection
+vim.g.is_root = vim.env.USER == "root" or vim.env.SUDO_USER ~= nil
+vim.g.is_server = vim.fn.hostname():match("server") ~= nil or vim.fn.hostname():match("vps") ~= nil
+vim.g.minimal_mode = vim.g.is_server or false -- Set to true to skip UI plugins
+
+-- Root user safety: disable persistent files
+if vim.g.is_root then
+	vim.notify("Running as root - disabling persistent files", vim.log.levels.WARN)
+	vim.opt.swapfile = false
+	vim.opt.backup = false
+	vim.opt.writebackup = false
+	vim.opt.undofile = false
+	vim.opt.shadafile = "NONE" -- Don't save command history
+end
+
 -- Encoding & shell
 vim.opt.encoding = "utf-8"
 vim.opt.fileencoding = "utf-8"
@@ -21,11 +36,15 @@ vim.opt.ttimeoutlen = 0
 vim.opt.timeout = true
 vim.opt.timeoutlen = 800
 vim.opt.history = 1000
-vim.opt.swapfile = false
-vim.opt.backup = false
-vim.opt.writebackup = false
-vim.opt.undofile = true
-vim.opt.undodir = vim.fn.stdpath("data") .. "/undo"
+
+-- File handling (unless root user, which disables these above)
+if not vim.g.is_root then
+	vim.opt.swapfile = false
+	vim.opt.backup = false
+	vim.opt.writebackup = false
+	vim.opt.undofile = true
+	vim.opt.undodir = vim.fn.stdpath("data") .. "/undo"
+end
 
 -- Additional performance tweaks
 vim.opt.synmaxcol = 300  -- Don't syntax highlight super long lines
@@ -78,6 +97,17 @@ vim.opt.copyindent = true
 vim.opt.smartindent = true
 vim.opt.preserveindent = true
 vim.opt.shiftround = true
+
+-- Markdown-specific settings (4 spaces, expanded)
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = "markdown",
+	callback = function()
+		vim.opt_local.tabstop = 4
+		vim.opt_local.shiftwidth = 4
+		vim.opt_local.softtabstop = 4
+		vim.opt_local.expandtab = true
+	end,
+})
 
 -- Completion
 vim.opt.completeopt = { "menuone", "noselect", "noinsert" }
