@@ -15,7 +15,6 @@ vim.g.minimal_mode = vim.g.is_server or false -- Set to true to skip UI plugins
 
 -- Root user safety: disable persistent files
 if vim.g.is_root then
-	vim.notify("Running as root - disabling persistent files", vim.log.levels.WARN)
 	vim.opt.swapfile = false
 	vim.opt.backup = false
 	vim.opt.writebackup = false
