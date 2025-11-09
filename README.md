@@ -24,7 +24,7 @@ Modern, performant Neovim configuration using lazy.nvim and native LSP.
 mv ~/.config/nvim ~/.config/nvim.backup 2>/dev/null || true
 
 # 2. Clone or copy this config
-cp -r /path/to/@nvim-lua ~/.config/nvim
+cp -r /path/to/nvim ~/.config/nvim
 
 # 3. Start Neovim - plugins will auto-install
 nvim
@@ -55,14 +55,14 @@ sudo ln -s /home/YOUR_USERNAME/.config/nvim /root/.config/nvim
 ```bash
 # Same as normal user installation
 # UI plugins are lazy-loaded so minimal performance impact
-cp -r /path/to/@nvim-lua ~/.config/nvim
+cp -r /path/to/nvim ~/.config/nvim
 nvim
 ```
 
 #### Option 2: Minimal Mode
 ```bash
 # Copy config
-cp -r /path/to/@nvim-lua ~/.config/nvim
+cp -r /path/to/nvim ~/.config/nvim
 
 # Edit ~/.config/nvim/init.lua and set:
 # vim.g.minimal_mode = true
@@ -409,14 +409,14 @@ Or use `lua/config/project.lua` for another config directory.
 Issue: Plugin not loaded yet
 Fix: Press `<F4>` again after Lazy finishes loading
 
-## Migration from @nvim-lua
+## Migration from nvim
 
 ```bash
 # 1. Backup current config
-mv ~/.config/@nvim-lua ~/.config/@nvim-lua.backup
+mv ~/.config/nvim ~/.config/nvim.backup
 
 # 2. Move to standard location
-mv ~/.config/@nvim-lua.backup ~/.config/nvim
+mv ~/.config/nvim.backup ~/.config/nvim
 
 # 3. Everything should work - paths are now standard
 ```
