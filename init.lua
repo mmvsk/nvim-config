@@ -8,20 +8,6 @@ vim.g.loaded_netrwPlugin = 1
 vim.g.mapleader = ","
 vim.g.maplocalleader = "_"
 
--- Hide cmdline during startup to suppress SIXEL probe message
-local original_cmdheight = 1
-vim.opt.cmdheight = 0
-
--- Restore cmdheight after plugins load
-vim.api.nvim_create_autocmd("VimEnter", {
-	once = true,
-	callback = function()
-		vim.schedule(function()
-			vim.opt.cmdheight = original_cmdheight
-		end)
-	end,
-})
-
 -- Environment detection
 vim.g.is_root = vim.env.USER == "root" or vim.env.SUDO_USER ~= nil
 vim.g.is_server = vim.fn.hostname():match("server") ~= nil or vim.fn.hostname():match("vps") ~= nil
