@@ -126,6 +126,7 @@ return {
 			vim.notify = function(msg, level, opts)
 				if msg:match("config change detected") then return end
 				if msg:match("SIXEL") then return end
+				if msg:match("nvim%-lspconfig.*deprecated") then return end
 				original(msg, level, opts)
 			end
 		end,
