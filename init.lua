@@ -226,5 +226,9 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup("plugins")
 
-
 vim.opt.laststatus = original_laststatus
+
+-- Clear screen after plugins load to hide SIXEL probe message (from terminal image detection)
+vim.defer_fn(function()
+	vim.cmd("mode")  -- Force redraw
+end, 1)
