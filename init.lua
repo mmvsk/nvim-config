@@ -8,6 +8,17 @@ vim.g.loaded_netrwPlugin = 1
 vim.g.mapleader = ","
 vim.g.maplocalleader = "_"
 
+-- Filter annoying messages early (before plugins load)
+local original_notify = vim.notify
+vim.notify = function(msg, level, opts)
+	if type(msg) == "string" then
+		if msg:match("nvim%-lspconfig.*deprecated") or msg:match("nvim%-lspconfig.*0%.10") then
+			return
+		end
+	end
+	original_notify(msg, level, opts)
+end
+
 -- Environment detection
 vim.g.is_root = vim.env.USER == "root" or vim.env.SUDO_USER ~= nil
 vim.g.is_server = vim.fn.hostname():match("server") ~= nil or vim.fn.hostname():match("vps") ~= nil
