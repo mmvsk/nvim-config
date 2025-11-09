@@ -53,16 +53,16 @@ return {
 			}
 
 			-- Ensure treesitter comment highlights link to Comment group for all languages
+			-- The onedark theme (as of Nov 2025) only sets @comment, not language-specific ones
 			vim.api.nvim_create_autocmd("FileType", {
 				callback = function(args)
 					local ft = args.match
 					-- Link language-specific comment highlight to Comment
-					vim.api.nvim_set_hl(0, "@comment." .. ft, { link = "Comment" })
+					vim.schedule(function()
+						vim.api.nvim_set_hl(0, "@comment." .. ft, { link = "Comment" })
+					end)
 				end,
 			})
-
-			-- Also set the generic one
-			vim.api.nvim_set_hl(0, "@comment", { link = "Comment" })
 		end,
 	},
 

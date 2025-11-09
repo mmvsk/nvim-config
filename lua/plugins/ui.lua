@@ -95,6 +95,7 @@ return {
 	-- Theme
 	{
 		"navarasu/onedark.nvim",
+		version = "v0.1.0", -- Pin to v0.1.0 until comment highlighting is fixed in v1.0.0+
 		lazy = false,
 		priority = 1000,
 		config = function()
