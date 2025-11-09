@@ -51,6 +51,18 @@ return {
 					enable = true,
 				},
 			}
+
+			-- Ensure treesitter comment highlights link to Comment group for all languages
+			vim.api.nvim_create_autocmd("FileType", {
+				callback = function(args)
+					local ft = args.match
+					-- Link language-specific comment highlight to Comment
+					vim.api.nvim_set_hl(0, "@comment." .. ft, { link = "Comment" })
+				end,
+			})
+
+			-- Also set the generic one
+			vim.api.nvim_set_hl(0, "@comment", { link = "Comment" })
 		end,
 	},
 

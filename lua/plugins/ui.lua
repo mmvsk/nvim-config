@@ -6,12 +6,6 @@ if vim.g.minimal_mode then
 end
 
 return {
-	-- Devicons (lazy load to prevent SIXEL probe at startup)
-	{
-		"nvim-tree/nvim-web-devicons",
-		lazy = true,
-	},
-
 	-- File tree (NERDTree replacement)
 	{
 		"nvim-tree/nvim-tree.lua",
@@ -101,6 +95,7 @@ return {
 	-- Theme
 	{
 		"navarasu/onedark.nvim",
+		lazy = false,
 		priority = 1000,
 		config = function()
 			require("onedark").setup {
