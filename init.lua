@@ -34,7 +34,7 @@ vim.opt.lazyredraw = false
 vim.opt.ttimeout = true
 vim.opt.ttimeoutlen = 0
 vim.opt.timeout = true
-vim.opt.timeoutlen = 800
+vim.opt.timeoutlen = 500  -- Wait time for key sequence completion
 vim.opt.history = 1000
 
 -- File handling (unless root user, which disables these above)

@@ -176,9 +176,9 @@ mkdir -p ~/.config/nvim/lua/plugins
 - `:TSPlaygroundToggle` - View syntax tree
 
 ### Sessions
-- `<leader>qs` - Restore session
-- `<leader>ql` - Restore last session
-- `<leader>qd` - Don't save session on exit
+- `<leader>ss` - Restore session
+- `<leader>sl` - Restore last session
+- `<leader>sd` - Don't save session on exit
 
 ### Formatting
 - `<leader>f` - Convert 2 spaces to tabs + single to double quotes
@@ -290,7 +290,7 @@ mkdir -p ~/.config/nvim/lua/plugins
 **persistence.nvim**
 - What: Session management
 - Why: Save/restore workspace state
-- Usage: `<leader>qs` restore, auto-saves on exit
+- Usage: `<leader>ss` restore, auto-saves on exit
 
 **editorconfig-vim**
 - What: EditorConfig support
