@@ -480,26 +480,15 @@ return {
 		}
 	},
 
-	-- markdown support
 	{
-		"gabrielelana/vim-markdown",
+		"mmvsk/markdown-checkbox.nvim",
 		ft = "markdown",
-		init = function()
-			vim.g.markdown_enable_conceal = 0
-			vim.g.markdown_enable_spell_checking = 0
-			vim.g.markdown_enable_input_abbreviations = 0
-			vim.api.nvim_create_autocmd("FileType", {
-				pattern = "markdown",
-				callback = function()
-					vim.bo.tabstop = 4
-					vim.bo.shiftwidth = 4
-					vim.bo.softtabstop = 4
-					vim.bo.expandtab = true -- optional: use spaces instead of tabs
-				end,
+		config = function()
+			require("markdown-checkbox").setup({
+				keymap = "<Space>" -- default
 			})
 		end
 	},
-
 
 	{
 		"nvim-lualine/lualine.nvim",
