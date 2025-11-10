@@ -128,19 +128,30 @@ return {
 			vim.api.nvim_set_hl(0, "WinSeparator", { fg = winsep_fg, bg = inactive_bg })
 			vim.api.nvim_set_hl(0, "VertSplit", { fg = winsep_fg, bg = inactive_bg })
 
-			-- Keep NvimTree darker background
-			vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = "#21252b" })
+			-- Keep NvimTree darker background for all areas
+			local tree_bg = "#21252b"
+			vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = tree_bg })
+			vim.api.nvim_set_hl(0, "NvimTreeEndOfBuffer", { fg = tree_bg, bg = tree_bg })
+			vim.api.nvim_set_hl(0, "NvimTreeSignColumn", { bg = tree_bg })
 
 			-- Set up window highlighting for inactive windows
+			local nvimtree_hl = "Normal:NvimTreeNormal,EndOfBuffer:NvimTreeEndOfBuffer,SignColumn:NvimTreeSignColumn"
+
 			vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
 				callback = function()
-					vim.wo.winhighlight = ""
+					if vim.bo.filetype == "NvimTree" then
+						vim.wo.winhighlight = nvimtree_hl
+					else
+						vim.wo.winhighlight = ""
+					end
 				end,
 			})
 
 			vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
 				callback = function()
-					if vim.bo.filetype ~= "NvimTree" then
+					if vim.bo.filetype == "NvimTree" then
+						vim.wo.winhighlight = nvimtree_hl
+					else
 						vim.wo.winhighlight = "Normal:InactiveWindow,NormalNC:InactiveWindow,SignColumn:InactiveWindow,LineNr:InactiveLineNr,CursorLineNr:InactiveLineNr,FoldColumn:InactiveWindow,EndOfBuffer:InactiveEndOfBuffer"
 					end
 				end,
