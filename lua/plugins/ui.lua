@@ -122,7 +122,7 @@ return {
 			vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
 				callback = function()
 					if vim.bo.filetype ~= "NvimTree" then
-						vim.wo.winhighlight = "Normal:InactiveWindow,NormalNC:InactiveWindow"
+						vim.wo.winhighlight = "Normal:InactiveWindow,NormalNC:InactiveWindow,SignColumn:InactiveWindow,LineNr:InactiveWindow,CursorLineNr:InactiveWindow,FoldColumn:InactiveWindow"
 					end
 				end,
 			})
