@@ -78,6 +78,15 @@ vim.opt.listchars = {
 	extends = "▸",
 	precedes = "◂",
 }
+vim.opt.fillchars = {
+	vert = " ",
+	vertleft = " ",
+	vertright = " ",
+	horiz = " ",
+	horizup = " ",
+	horizdown = " ",
+	verthoriz = " ",
+}
 vim.opt.splitbelow = true
 vim.opt.splitright = true
 vim.opt.showmode = true
