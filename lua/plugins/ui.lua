@@ -123,6 +123,9 @@ return {
 			vim.api.nvim_set_hl(0, "InactiveWindow", { bg = inactive_bg })
 			vim.api.nvim_set_hl(0, "InactiveLineNr", { fg = linenr_fg, bg = inactive_bg })
 			vim.api.nvim_set_hl(0, "InactiveEndOfBuffer", { fg = inactive_bg, bg = inactive_bg }) -- Hide tildes
+			vim.api.nvim_set_hl(0, "InactiveCursorLine", { bg = inactive_bg }) -- Hide cursorline
+			vim.api.nvim_set_hl(0, "InactiveCursorColumn", { bg = inactive_bg }) -- Hide cursorcolumn
+			vim.api.nvim_set_hl(0, "InactiveColorColumn", { bg = inactive_bg }) -- Hide colorcolumn
 
 			-- Set all window separators to use inactive background
 			vim.api.nvim_set_hl(0, "WinSeparator", { fg = winsep_fg, bg = inactive_bg })
@@ -152,7 +155,7 @@ return {
 					if vim.bo.filetype == "NvimTree" then
 						vim.wo.winhighlight = nvimtree_hl
 					else
-						vim.wo.winhighlight = "Normal:InactiveWindow,NormalNC:InactiveWindow,SignColumn:InactiveWindow,LineNr:InactiveLineNr,CursorLineNr:InactiveLineNr,FoldColumn:InactiveWindow,EndOfBuffer:InactiveEndOfBuffer"
+						vim.wo.winhighlight = "Normal:InactiveWindow,NormalNC:InactiveWindow,SignColumn:InactiveWindow,LineNr:InactiveLineNr,CursorLineNr:InactiveLineNr,FoldColumn:InactiveWindow,EndOfBuffer:InactiveEndOfBuffer,CursorLine:InactiveCursorLine,CursorColumn:InactiveCursorColumn,ColorColumn:InactiveColorColumn"
 					end
 				end,
 			})
