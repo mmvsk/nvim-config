@@ -223,6 +223,12 @@ map("n", "<M-k>", ":bprevious<CR>", { silent = true })
 map("n", "<M-j>", ":bnext<CR>", { silent = true })
 map("n", "<F6>", ":b#<CR>", { silent = true })
 
+-- Horizontal scrolling with Alt + MouseScroll
+map("n", "<A-ScrollWheelUp>", "5zh", { silent = true })
+map("n", "<A-ScrollWheelDown>", "5zl", { silent = true })
+map("i", "<A-ScrollWheelUp>", "<C-o>5zh", { silent = true })
+map("i", "<A-ScrollWheelDown>", "<C-o>5zl", { silent = true })
+
 -- indent selected keep selected
 map("v", "<", "<gv")
 map("v", ">", ">gv")
