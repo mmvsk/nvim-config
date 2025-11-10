@@ -106,6 +106,9 @@ return {
 
 			require("onedark").load()
 
+			-- Style colorcolumn as a subtle line (very slight background difference)
+			vim.api.nvim_set_hl(0, "ColorColumn", { bg = "#2c313a" })
+
 			-- Dim inactive windows
 			-- Active window bg: #282c34, File tree bg: #21252b
 			-- Using #262a31 (slightly darker than active)

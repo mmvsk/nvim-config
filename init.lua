@@ -86,6 +86,7 @@ vim.opt.fillchars = {
 	horizup = " ",
 	horizdown = " ",
 	verthoriz = " ",
+	eob = " ",
 }
 vim.opt.splitbelow = true
 vim.opt.splitright = true
