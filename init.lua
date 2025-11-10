@@ -12,6 +12,11 @@ vim.g.maplocalleader = "_"
 -- Set to true to enable, false to disable
 vim.g.zen_mode = true
 
+-- File tree window picker: enables A/B/C/... window selector when opening files
+-- Set to true for keyboard-only workflow (shows A/B/C prompt)
+-- Set to false for mouse workflow (opens in last active window)
+vim.g.tree_window_picker = false
+
 -- Filter annoying messages early (before plugins load)
 local original_notify = vim.notify
 vim.notify = function(msg, level, opts)
