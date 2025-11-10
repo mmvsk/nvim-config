@@ -145,9 +145,10 @@ return {
 			vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = tree_bg })
 			vim.api.nvim_set_hl(0, "NvimTreeEndOfBuffer", { fg = tree_bg, bg = tree_bg })
 			vim.api.nvim_set_hl(0, "NvimTreeSignColumn", { bg = tree_bg })
+			vim.api.nvim_set_hl(0, "NvimTreeWinSeparator", { fg = winsep_fg, bg = tree_bg })
 
 			-- Set up window highlighting for inactive windows
-			local nvimtree_hl = "Normal:NvimTreeNormal,EndOfBuffer:NvimTreeEndOfBuffer,SignColumn:NvimTreeSignColumn"
+			local nvimtree_hl = "Normal:NvimTreeNormal,EndOfBuffer:NvimTreeEndOfBuffer,SignColumn:NvimTreeSignColumn,WinSeparator:NvimTreeWinSeparator,VertSplit:NvimTreeWinSeparator"
 
 			vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
 				callback = function()
