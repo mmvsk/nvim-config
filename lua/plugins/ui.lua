@@ -105,6 +105,30 @@ return {
 			}
 
 			require("onedark").load()
+
+			-- Dim inactive windows
+			-- Active window bg: #282c34, File tree bg: #21252b
+			-- Using #262a31 (slightly darker than active)
+			local inactive_bg = "#262a31"
+			--local inactive_bg = "#23272e"
+
+			-- Set up window highlighting for inactive windows
+			vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
+				callback = function()
+					vim.wo.winhighlight = ""
+				end,
+			})
+
+			vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
+				callback = function()
+					if vim.bo.filetype ~= "NvimTree" then
+						vim.wo.winhighlight = "Normal:InactiveWindow,NormalNC:InactiveWindow"
+					end
+				end,
+			})
+
+			-- Define the highlight group for inactive windows
+			vim.api.nvim_set_hl(0, "InactiveWindow", { bg = inactive_bg })
 		end,
 	},
 
