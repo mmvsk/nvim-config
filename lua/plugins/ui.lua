@@ -112,12 +112,24 @@ return {
 			local inactive_bg = "#262a31"
 			--local inactive_bg = "#23272e"
 
-			-- Get the current LineNr foreground color to preserve it
+			-- Get foreground colors to preserve them
 			local linenr_fg = vim.api.nvim_get_hl(0, { name = "LineNr" }).fg
+			local winsep_fg = vim.api.nvim_get_hl(0, { name = "WinSeparator" }).fg
+			if not winsep_fg then
+				winsep_fg = vim.api.nvim_get_hl(0, { name = "VertSplit" }).fg
+			end
 
 			-- Define highlight groups for inactive windows
 			vim.api.nvim_set_hl(0, "InactiveWindow", { bg = inactive_bg })
 			vim.api.nvim_set_hl(0, "InactiveLineNr", { fg = linenr_fg, bg = inactive_bg })
+			vim.api.nvim_set_hl(0, "InactiveEndOfBuffer", { fg = inactive_bg, bg = inactive_bg }) -- Hide tildes
+
+			-- Set all window separators to use inactive background
+			vim.api.nvim_set_hl(0, "WinSeparator", { fg = winsep_fg, bg = inactive_bg })
+			vim.api.nvim_set_hl(0, "VertSplit", { fg = winsep_fg, bg = inactive_bg })
+
+			-- Keep NvimTree darker background
+			vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = "#21252b" })
 
 			-- Set up window highlighting for inactive windows
 			vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
@@ -129,7 +141,7 @@ return {
 			vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
 				callback = function()
 					if vim.bo.filetype ~= "NvimTree" then
-						vim.wo.winhighlight = "Normal:InactiveWindow,NormalNC:InactiveWindow,SignColumn:InactiveWindow,LineNr:InactiveLineNr,CursorLineNr:InactiveLineNr,FoldColumn:InactiveWindow"
+						vim.wo.winhighlight = "Normal:InactiveWindow,NormalNC:InactiveWindow,SignColumn:InactiveWindow,LineNr:InactiveLineNr,CursorLineNr:InactiveLineNr,FoldColumn:InactiveWindow,EndOfBuffer:InactiveEndOfBuffer"
 					end
 				end,
 			})
