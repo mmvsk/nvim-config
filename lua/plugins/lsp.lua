@@ -20,6 +20,42 @@ return {
 		config = function()
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
+			-- Set up LSP keybindings using LspAttach autocmd (more reliable)
+			vim.api.nvim_create_autocmd("LspAttach", {
+				group = vim.api.nvim_create_augroup("UserLspConfig", {}),
+				callback = function(ev)
+					local opts = { buffer = ev.buf, silent = true }
+
+					-- Go to definition (works with TypeScript path aliases via LSP)
+					vim.keymap.set("n", "gd", vim.lsp.buf.definition, vim.tbl_extend("force", opts, { desc = "Go to definition" }))
+
+					-- Go to file - smart function that tries LSP first, falls back to default gf
+					vim.keymap.set("n", "gf", function()
+						-- Try LSP definition first (works for import paths with aliases)
+						local params = vim.lsp.util.make_position_params()
+						vim.lsp.buf_request(0, "textDocument/definition", params, function(err, result)
+							if err or not result or vim.tbl_isempty(result) then
+								-- Fall back to default gf behavior
+								local ok, _ = pcall(vim.cmd, "normal! gf")
+								if not ok then
+									vim.notify("No file found under cursor", vim.log.levels.WARN)
+								end
+							else
+								vim.lsp.util.jump_to_location(result[1], "utf-8")
+							end
+						end)
+					end, vim.tbl_extend("force", opts, { desc = "Go to file (LSP-aware)" }))
+
+					-- Other useful LSP keymaps
+					vim.keymap.set("n", "gD", vim.lsp.buf.declaration, vim.tbl_extend("force", opts, { desc = "Go to declaration" }))
+					vim.keymap.set("n", "gr", vim.lsp.buf.references, vim.tbl_extend("force", opts, { desc = "Go to references" }))
+					vim.keymap.set("n", "gi", vim.lsp.buf.implementation, vim.tbl_extend("force", opts, { desc = "Go to implementation" }))
+					vim.keymap.set("n", "K", vim.lsp.buf.hover, vim.tbl_extend("force", opts, { desc = "Hover documentation" }))
+					vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, vim.tbl_extend("force", opts, { desc = "Rename symbol" }))
+					vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, vim.tbl_extend("force", opts, { desc = "Code action" }))
+				end,
+			})
+
 			-- Neovim 0.11+ has native vim.lsp.config API, 0.10 uses lspconfig
 			if vim.fn.has("nvim-0.11") == 1 then
 				-- Modern API (0.11+)
@@ -80,6 +116,7 @@ return {
 	},
 
 	-- TypeScript-specific LSP (faster than ts_ls)
+	-- Note: Keybindings are set via LspAttach autocmd above
 	{
 		"pmizio/typescript-tools.nvim",
 		dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },

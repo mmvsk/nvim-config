@@ -13,6 +13,19 @@ return {
 		keys = { { "<F4>", "<cmd>NvimTreeToggle<CR>", desc = "Toggle file tree" } },
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 		config = function()
+			-- Track last active window (not nvim-tree)
+			local last_active_window = nil
+
+			-- Update last active window when leaving a window
+			vim.api.nvim_create_autocmd("WinLeave", {
+				callback = function()
+					local ft = vim.bo.filetype
+					if ft ~= "NvimTree" then
+						last_active_window = vim.api.nvim_get_current_win()
+					end
+				end,
+			})
+
 			require("nvim-tree").setup {
 				disable_netrw = true,
 				hijack_netrw = true,
@@ -24,6 +37,13 @@ return {
 					signcolumn = "yes",
 					number = false,
 					relativenumber = false,
+				},
+				actions = {
+					open_file = {
+						window_picker = {
+							enable = false, -- Disable A/B/C prompt
+						},
+					},
 				},
 				renderer = {
 					group_empty = true,
@@ -57,13 +77,42 @@ return {
 					local api = require("nvim-tree.api")
 					local opts = { buffer = bufnr, noremap = true, silent = true }
 
-					-- Key mappings
-					vim.keymap.set("n", "o", api.node.open.edit, opts)
+					-- Custom function to open file in last active window
+					local function open_in_last_active()
+						local node = api.tree.get_node_under_cursor()
+						if node and node.type == "file" then
+							-- If we have a tracked last active window and it's valid
+							if last_active_window and vim.api.nvim_win_is_valid(last_active_window) then
+								vim.api.nvim_set_current_win(last_active_window)
+								vim.cmd.edit(node.absolute_path)
+							else
+								-- Fallback: find first non-nvim-tree window
+								for _, win in ipairs(vim.api.nvim_list_wins()) do
+									local win_buf = vim.api.nvim_win_get_buf(win)
+									local win_ft = vim.api.nvim_buf_get_option(win_buf, "filetype")
+									if win_ft ~= "NvimTree" then
+										vim.api.nvim_set_current_win(win)
+										vim.cmd.edit(node.absolute_path)
+										last_active_window = win
+										return
+									end
+								end
+								-- If no other window, just open normally
+								api.node.open.edit()
+							end
+						elseif node and node.type == "directory" then
+							-- For directories, just toggle them
+							api.node.open.edit()
+						end
+					end
+
+					-- Key mappings using custom open function
+					vim.keymap.set("n", "o", open_in_last_active, opts)
 					vim.keymap.set("n", "C", api.tree.change_root_to_node, opts)
 					vim.keymap.set("n", "u", api.tree.change_root_to_parent, opts)
 
-					-- Mouse mappings
-					vim.keymap.set("n", "<2-LeftMouse>", api.node.open.edit, opts)
+					-- Mouse mappings using custom open function
+					vim.keymap.set("n", "<2-LeftMouse>", open_in_last_active, opts)
 					vim.keymap.set("n", "<2-RightMouse>", api.tree.change_root_to_node, opts)
 				end,
 			}
