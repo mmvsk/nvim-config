@@ -8,6 +8,10 @@ vim.g.loaded_netrwPlugin = 1
 vim.g.mapleader = ","
 vim.g.maplocalleader = "_"
 
+-- Zen mode: enables dimmed inactive windows and cleaner UI
+-- Set to true to enable, false to disable
+vim.g.zen_mode = true
+
 -- Filter annoying messages early (before plugins load)
 local original_notify = vim.notify
 vim.notify = function(msg, level, opts)
@@ -78,16 +82,21 @@ vim.opt.listchars = {
 	extends = "▸",
 	precedes = "◂",
 }
-vim.opt.fillchars = {
-	vert = " ",
-	vertleft = " ",
-	vertright = " ",
-	horiz = " ",
-	horizup = " ",
-	horizdown = " ",
-	verthoriz = " ",
-	eob = " ",
-}
+
+-- Zen mode: Hide window separators and tildes
+if vim.g.zen_mode then
+	vim.opt.fillchars = {
+		vert = " ",
+		vertleft = " ",
+		vertright = " ",
+		horiz = " ",
+		horizup = " ",
+		horizdown = " ",
+		verthoriz = " ",
+		eob = " ",
+	}
+end
+
 vim.opt.splitbelow = true
 vim.opt.splitright = true
 vim.opt.showmode = true
