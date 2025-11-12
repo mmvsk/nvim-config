@@ -15,6 +15,21 @@ return {
 		config = function()
 			local cmp = require("cmp")
 			cmp.setup {
+				-- Disable autocomplete for text-based files
+				enabled = function()
+					local filetype = vim.bo.filetype
+					local disabled_filetypes = {
+						"markdown",
+						"text",
+						"", -- unknown/no filetype
+					}
+					for _, ft in ipairs(disabled_filetypes) do
+						if filetype == ft then
+							return false
+						end
+					end
+					return true
+				end,
 				mapping = cmp.mapping.preset.insert({
 					["<Tab>"] = cmp.mapping.select_next_item(),
 					["<S-Tab>"] = cmp.mapping.select_prev_item(),
