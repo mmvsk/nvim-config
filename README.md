@@ -148,12 +148,16 @@ mkdir -p ~/.config/nvim/lua/plugins
 - `<F6>` - Toggle to alternate buffer
 
 ### LSP & Diagnostics
-- `gl` or `<leader>d` - Show diagnostics float
-- `<leader>F` - Format file with LSP
-- `gd` - Go to definition
-- `gr` - Find references
 - `K` - Hover documentation
+- `gl` or `<leader>d` - Show diagnostics float
+- `gd` - Go to definition
+- `gi` - Go to implementation
+- `gD` - Go to declaration
+- `gr` - Go to file (LS-aware)
+- `gr` - Find references
 - `<leader>rn` - Rename symbol
+- `<leader>ca` - Code actions
+- `<leader>F` - Format file with LSP
 
 ### Git
 - `]g` - Next git hunk
