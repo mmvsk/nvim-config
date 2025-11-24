@@ -152,13 +152,19 @@ do
 	local function update_md_indent()
 		if not vim.g.markdown_code_block_indent then return end
 
-		if in_code_block() then
-			vim.opt_local.expandtab = false
-			vim.opt_local.shiftwidth = 2
-		else
-			vim.opt_local.expandtab = true
-			vim.opt_local.shiftwidth = 4
-		end
+		-- Use vim.schedule to run after editorconfig
+		vim.schedule(function()
+			if in_code_block() then
+				vim.opt_local.expandtab = false
+				vim.opt_local.tabstop = 2
+				vim.opt_local.shiftwidth = 0  -- use tabstop value (2)
+				vim.opt_local.softtabstop = 0  -- use tabstop value (2)
+			else
+				vim.opt_local.expandtab = true
+				vim.opt_local.shiftwidth = 4
+				vim.opt_local.softtabstop = 4
+			end
+		end)
 	end
 
 	vim.api.nvim_create_autocmd("FileType", {
@@ -166,11 +172,16 @@ do
 		callback = function()
 			vim.opt_local.tabstop = 2
 			vim.opt_local.shiftwidth = 4
+			vim.opt_local.softtabstop = 4
 			vim.opt_local.expandtab = true
+			vim.opt_local.autoindent = true
+			vim.opt_local.smartindent = false
+			vim.opt_local.indentexpr = ""
+			vim.opt_local.copyindent = true
 		end,
 	})
 
-	vim.api.nvim_create_autocmd("InsertEnter", {
+	vim.api.nvim_create_autocmd({ "BufEnter", "CursorMoved", "InsertEnter", "CursorMovedI" }, {
 		pattern = "*.md",
 		callback = update_md_indent,
 	})
