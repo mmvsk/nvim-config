@@ -1,5 +1,12 @@
 -- LSP Configuration: Language servers, Mason installer
 
+local lsp_disabled = vim.env.NVIM_LSP_DISABLE == "1"
+local hide_missing = vim.env.NVIM_LSP_HIDE_MISSING_DEPS == "1"
+
+if lsp_disabled then
+	return {}
+end
+
 return {
 	-- LSP installer (install servers with :Mason)
 	-- Recommended servers: html, cssls, tailwindcss, clangd, rust_analyzer,
@@ -17,8 +24,52 @@ return {
 			"williamboman/mason.nvim",
 			"hrsh7th/cmp-nvim-lsp",
 		},
+		cond = not lsp_disabled,
 		config = function()
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
+			local server_specs = {
+				{ name = "html", cmd = "vscode-html-language-server" },
+				{ name = "cssls", cmd = "vscode-css-language-server" },
+				{ name = "tailwindcss", cmd = "tailwindcss-language-server" },
+				{
+					name = "lua_ls",
+					cmd = "lua-language-server",
+					opts = {
+						settings = {
+							Lua = {
+								diagnostics = { globals = { "vim" } },
+							},
+						},
+					},
+				},
+				{ name = "clangd", cmd = "clangd" },
+				{ name = "rust_analyzer", cmd = "rust-analyzer" },
+				{ name = "gopls", cmd = "gopls" },
+				{ name = "bashls", cmd = "bash-language-server" },
+				{ name = "yamlls", cmd = "yaml-language-server" },
+				{ name = "taplo", cmd = "taplo" },
+				{ name = "zls", cmd = "zls" },
+				{ name = "prismals", cmd = "prisma-language-server" },
+				{ name = "dockerls", cmd = "docker-langserver" },
+				{ name = "jsonls", cmd = "vscode-json-language-server" },
+				{ name = "pyright", cmd = "pyright-langserver" },
+			}
+
+			local missing_notified = {}
+			local function server_available(cmd)
+				if not cmd or cmd == "" then
+					return true
+				end
+				local ok = vim.fn.executable(cmd) == 1
+				if not ok and not hide_missing and not missing_notified[cmd] then
+					missing_notified[cmd] = true
+					vim.notify(
+						("LSP server skipped: %s (set NVIM_LSP_HIDE_MISSING_DEPS=1 to silence)"):format(cmd),
+						vim.log.levels.WARN
+					)
+				end
+				return ok
+			end
 
 			-- Set up LSP keybindings using LspAttach autocmd (more reliable)
 			vim.api.nvim_create_autocmd("LspAttach", {
@@ -58,59 +109,26 @@ return {
 
 			-- Neovim 0.11+ has native vim.lsp.config API, 0.10 uses lspconfig
 			if vim.fn.has("nvim-0.11") == 1 then
-				-- Modern API (0.11+)
-				vim.lsp.config("html", { capabilities = capabilities })
-				vim.lsp.config("cssls", { capabilities = capabilities })
-				vim.lsp.config("tailwindcss", { capabilities = capabilities })
-				vim.lsp.config("lua_ls", {
-					capabilities = capabilities,
-					settings = {
-						Lua = {
-							diagnostics = { globals = { "vim" } },
-						},
-					},
-				})
-				vim.lsp.config("clangd", { capabilities = capabilities })
-				vim.lsp.config("rust_analyzer", { capabilities = capabilities })
-				vim.lsp.config("gopls", { capabilities = capabilities })
-				vim.lsp.config("bashls", { capabilities = capabilities })
-				vim.lsp.config("yamlls", { capabilities = capabilities })
-				vim.lsp.config("taplo", { capabilities = capabilities })
-				vim.lsp.config("zls", { capabilities = capabilities })
-				vim.lsp.config("prismals", { capabilities = capabilities })
-				vim.lsp.config("dockerls", { capabilities = capabilities })
-				vim.lsp.config("jsonls", { capabilities = capabilities })
-				vim.lsp.config("pyright", { capabilities = capabilities })
-
-				-- Enable all configured servers
-				vim.lsp.enable("html", "cssls", "tailwindcss", "lua_ls", "clangd",
-					"rust_analyzer", "gopls", "bashls", "yamlls", "taplo", "zls",
-					"prismals", "dockerls", "jsonls", "pyright")
+				local enabled = {}
+				for _, spec in ipairs(server_specs) do
+					if server_available(spec.cmd) then
+						local opts = vim.tbl_extend("force", { capabilities = capabilities }, spec.opts or {})
+						vim.lsp.config(spec.name, opts)
+						table.insert(enabled, spec.name)
+					end
+				end
+				if #enabled > 0 then
+					vim.lsp.enable(table.unpack(enabled))
+				end
 			else
-				-- Legacy API (0.10 and earlier)
+				-- Legacy API (0.10 and earlier). Only start servers that are installed/executable.
 				local lspconfig = require("lspconfig")
-				lspconfig.html.setup({ capabilities = capabilities })
-				lspconfig.cssls.setup({ capabilities = capabilities })
-				lspconfig.tailwindcss.setup({ capabilities = capabilities })
-				lspconfig.lua_ls.setup({
-					capabilities = capabilities,
-					settings = {
-						Lua = {
-							diagnostics = { globals = { "vim" } },
-						},
-					},
-				})
-				lspconfig.clangd.setup({ capabilities = capabilities })
-				lspconfig.rust_analyzer.setup({ capabilities = capabilities })
-				lspconfig.gopls.setup({ capabilities = capabilities })
-				lspconfig.bashls.setup({ capabilities = capabilities })
-				lspconfig.yamlls.setup({ capabilities = capabilities })
-				lspconfig.taplo.setup({ capabilities = capabilities })
-				lspconfig.zls.setup({ capabilities = capabilities })
-				lspconfig.prismals.setup({ capabilities = capabilities })
-				lspconfig.dockerls.setup({ capabilities = capabilities })
-				lspconfig.jsonls.setup({ capabilities = capabilities })
-				lspconfig.pyright.setup({ capabilities = capabilities })
+				for _, spec in ipairs(server_specs) do
+					if server_available(spec.cmd) and lspconfig[spec.name] then
+						local opts = vim.tbl_extend("force", { capabilities = capabilities }, spec.opts or {})
+						lspconfig[spec.name].setup(opts)
+					end
+				end
 			end
 		end,
 	},
@@ -121,6 +139,7 @@ return {
 		"pmizio/typescript-tools.nvim",
 		dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
 		ft = { "typescript", "typescriptreact", "javascript", "javascriptreact" },
+		cond = not lsp_disabled,
 		config = function()
 			require("typescript-tools").setup({
 				settings = {
