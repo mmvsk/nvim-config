@@ -136,6 +136,8 @@ vim.opt.shiftround = true
 vim.g.markdown_code_block_indent = true
 
 do
+	local last_code_block_state = nil
+
 	local function in_code_block()
 		local ok, node = pcall(vim.treesitter.get_node)
 		if not ok or not node then return false end
@@ -152,25 +154,28 @@ do
 	local function update_md_indent()
 		if not vim.g.markdown_code_block_indent then return end
 
-		-- Use vim.schedule to run after editorconfig
-		vim.schedule(function()
-			if in_code_block() then
-				vim.opt_local.expandtab = false
-				vim.opt_local.tabstop = 2
-				vim.opt_local.shiftwidth = 0  -- use tabstop value (2)
-				vim.opt_local.softtabstop = 0  -- use tabstop value (2)
-			else
-				vim.opt_local.expandtab = true
-				vim.opt_local.shiftwidth = 4
-				vim.opt_local.softtabstop = 4
-			end
-		end)
+		local is_code = in_code_block()
+		if is_code == last_code_block_state then return end  -- debounce: skip if no change
+		last_code_block_state = is_code
+
+		if is_code then
+			vim.opt_local.expandtab = false
+			vim.opt_local.tabstop = 2
+			vim.opt_local.shiftwidth = 2
+			vim.opt_local.softtabstop = 2
+		else
+			vim.opt_local.expandtab = true
+			vim.opt_local.tabstop = 4
+			vim.opt_local.shiftwidth = 4
+			vim.opt_local.softtabstop = 4
+		end
 	end
 
 	vim.api.nvim_create_autocmd("FileType", {
 		pattern = "markdown",
 		callback = function()
-			vim.opt_local.tabstop = 2
+			last_code_block_state = nil  -- reset state for new buffer
+			vim.opt_local.tabstop = 4
 			vim.opt_local.shiftwidth = 4
 			vim.opt_local.softtabstop = 4
 			vim.opt_local.expandtab = true
@@ -181,9 +186,12 @@ do
 		end,
 	})
 
-	vim.api.nvim_create_autocmd({ "BufEnter", "CursorMoved", "InsertEnter", "CursorMovedI" }, {
+	vim.api.nvim_create_autocmd({ "BufEnter", "InsertEnter", "InsertLeave" }, {
 		pattern = "*.md",
-		callback = update_md_indent,
+		callback = function()
+			last_code_block_state = nil  -- reset to force re-evaluation
+			update_md_indent()
+		end,
 	})
 end
 
