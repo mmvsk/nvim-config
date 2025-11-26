@@ -1,11 +1,12 @@
 -- LSP Configuration: Language servers, Mason installer
 
 local lsp_disabled = vim.env.NVIM_LSP_DISABLE == "1"
-local hide_missing = vim.env.NVIM_LSP_HIDE_MISSING_DEPS == "1"
 
 if lsp_disabled then
 	return {}
 end
+
+local unpack_fn = table.unpack or unpack
 
 return {
 	-- LSP installer (install servers with :Mason)
@@ -55,20 +56,8 @@ return {
 				{ name = "pyright", cmd = "pyright-langserver" },
 			}
 
-			local missing_notified = {}
 			local function server_available(cmd)
-				if not cmd or cmd == "" then
-					return true
-				end
-				local ok = vim.fn.executable(cmd) == 1
-				if not ok and not hide_missing and not missing_notified[cmd] then
-					missing_notified[cmd] = true
-					vim.notify(
-						("LSP server skipped: %s (set NVIM_LSP_HIDE_MISSING_DEPS=1 to silence)"):format(cmd),
-						vim.log.levels.WARN
-					)
-				end
-				return ok
+				return not cmd or cmd == "" or vim.fn.executable(cmd) == 1
 			end
 
 			-- Set up LSP keybindings using LspAttach autocmd (more reliable)
@@ -118,7 +107,7 @@ return {
 					end
 				end
 				if #enabled > 0 then
-					vim.lsp.enable(table.unpack(enabled))
+					vim.lsp.enable(unpack_fn(enabled))
 				end
 			else
 				-- Legacy API (0.10 and earlier). Only start servers that are installed/executable.

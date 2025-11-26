@@ -383,7 +383,6 @@ This skips all UI plugins (defined in `lua/plugins/ui.lua`).
 Set env vars before launching Neovim:
 
 - `NVIM_LSP_DISABLE=1` - skip loading all LSP plugins/config (fastest for servers)
-- `NVIM_LSP_HIDE_MISSING_DEPS=1` - keep LSP enabled but silence warnings for missing servers (e.g., `bash-language-server`)
 
 ### Override Settings per Project
 
