@@ -8,6 +8,31 @@ end
 
 local unpack_fn = table.unpack or unpack
 
+-- TypeScript LSP detection: local tsgo -> local tsc -> global tsgo
+local function detect_typescript_server()
+	-- Find project root by looking for tsconfig.json or package.json
+	local root_markers = { "tsconfig.json", "package.json", ".git" }
+	local root = vim.fs.root(0, root_markers)
+
+	if root then
+		local local_tsgo = root .. "/node_modules/.bin/tsgo"
+		local local_tsc = root .. "/node_modules/.bin/tsc"
+
+		if vim.fn.executable(local_tsgo) == 1 then
+			return "tsgo", { local_tsgo, "--lsp", "--stdio" }
+		elseif vim.fn.executable(local_tsc) == 1 then
+			return "tsserver", nil -- use typescript-tools
+		end
+	end
+
+	-- Fallback to global tsgo
+	if vim.fn.executable("tsgo") == 1 then
+		return "tsgo", { "tsgo", "--lsp", "--stdio" }
+	end
+
+	return nil, nil -- no TypeScript server available
+end
+
 return {
 	-- LSP installer (install servers with :Mason)
 	-- Recommended servers: html, cssls, tailwindcss, clangd, rust_analyzer,
@@ -119,27 +144,77 @@ return {
 					end
 				end
 			end
+
+			-- TypeScript: tsgo native LSP (if available)
+			local ts_server, ts_cmd = detect_typescript_server()
+			if ts_server == "tsgo" and ts_cmd then
+				local lspconfig = require("lspconfig")
+				local configs = require("lspconfig.configs")
+
+				-- Register tsgo as a custom LSP config
+				if not configs.tsgo then
+					configs.tsgo = {
+						default_config = {
+							cmd = ts_cmd,
+							filetypes = {
+								"javascript",
+								"javascriptreact",
+								"typescript",
+								"typescriptreact",
+							},
+							root_dir = lspconfig.util.root_pattern(
+								"tsconfig.json",
+								"package.json",
+								".git"
+							),
+						},
+					}
+				end
+
+				lspconfig.tsgo.setup({
+					cmd = ts_cmd, -- ensure dynamic cmd is used even if config was registered before
+					capabilities = capabilities,
+				})
+			end
 		end,
 	},
 
-	-- TypeScript-specific LSP (faster than ts_ls)
-	-- Note: Keybindings are set via LspAttach autocmd above
+	-- TypeScript via tsserver (fallback when tsgo not available)
+	-- Detects: local tsgo -> local tsc -> global tsgo -> warning
 	{
 		"pmizio/typescript-tools.nvim",
 		dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
 		ft = { "typescript", "typescriptreact", "javascript", "javascriptreact" },
 		cond = not lsp_disabled,
 		config = function()
-			require("typescript-tools").setup({
-				settings = {
-					expose_as_code_action = {
-						"add_missing_imports",
-						"remove_unused",
-						"organize_imports",
-						"fix_all",
+			local ts_server, _ = detect_typescript_server()
+
+			if ts_server == "tsserver" then
+				-- Use typescript-tools with local tsc/tsserver
+				require("typescript-tools").setup({
+					settings = {
+						expose_as_code_action = {
+							"add_missing_imports",
+							"remove_unused",
+							"organize_imports",
+							"fix_all",
+						},
 					},
-				},
-			})
+				})
+			elseif ts_server == nil then
+				-- No TypeScript server available - show warning on first TS file open
+				vim.api.nvim_create_autocmd("FileType", {
+					pattern = { "typescript", "typescriptreact", "javascript", "javascriptreact" },
+					once = true,
+					callback = function()
+						vim.notify(
+							"No TypeScript server found. Install @typescript/native-preview (tsgo) or typescript in your project.",
+							vim.log.levels.WARN
+						)
+					end,
+				})
+			end
+			-- If ts_server == "tsgo", do nothing here (handled in lspconfig section)
 		end,
 	},
 }
