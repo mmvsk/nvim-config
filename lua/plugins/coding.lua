@@ -37,6 +37,7 @@ return {
 					"query",
 					"regex",
 					"comment",
+					"sql",
 				},
 				highlight = {
 					enable = true,
