@@ -211,6 +211,17 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 	end
 })
 
+-- Default empty buffers to markdown (for quick notes)
+vim.api.nvim_create_autocmd("BufEnter", {
+	callback = function()
+		if vim.fn.bufname() == "" and vim.bo.filetype == "" and vim.bo.buftype == "" then
+			vim.bo.filetype = "markdown"
+			-- Start treesitter highlighting if available
+			pcall(vim.treesitter.start)
+		end
+	end
+})
+
 -- Make j/k and arrows move by display lines (wrapped) unless a count is given
 vim.keymap.set('n', 'j',  [[v:count == 0 ? 'gj' : 'j']], { expr = true, silent = true })
 vim.keymap.set('n', 'k',  [[v:count == 0 ? 'gk' : 'k']], { expr = true, silent = true })
