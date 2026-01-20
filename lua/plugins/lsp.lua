@@ -7,30 +7,41 @@ if lsp_disabled then
 end
 
 local unpack_fn = table.unpack or unpack
+local config = require("config")
 
--- TypeScript LSP detection: local tsgo -> local tsc -> global tsgo
+-- TypeScript LSP detection
+-- preferTypescriptLegacy: local tsc -> global tsc -> local tsgo -> global tsgo
+-- default: local tsgo -> local tsc -> global tsgo
 local function detect_typescript_server()
-	-- Find project root by looking for tsconfig.json or package.json
 	local root_markers = { "tsconfig.json", "package.json", ".git" }
 	local root = vim.fs.root(0, root_markers)
 
-	if root then
-		local local_tsgo = root .. "/node_modules/.bin/tsgo"
-		local local_tsc = root .. "/node_modules/.bin/tsc"
+	local local_tsgo = root and (root .. "/node_modules/.bin/tsgo") or nil
+	local local_tsc = root and (root .. "/node_modules/.bin/tsc") or nil
 
-		if vim.fn.executable(local_tsgo) == 1 then
+	if config.preferTypescriptLegacy then
+		-- Prefer tsc (typescript-tools): local tsc -> global tsc -> local tsgo -> global tsgo
+		if local_tsc and vim.fn.executable(local_tsc) == 1 then
+			return "tsserver", nil
+		elseif vim.fn.executable("tsc") == 1 then
+			return "tsserver", nil
+		elseif local_tsgo and vim.fn.executable(local_tsgo) == 1 then
 			return "tsgo", { local_tsgo, "--lsp", "--stdio" }
-		elseif vim.fn.executable(local_tsc) == 1 then
-			return "tsserver", nil -- use typescript-tools
+		elseif vim.fn.executable("tsgo") == 1 then
+			return "tsgo", { "tsgo", "--lsp", "--stdio" }
+		end
+	else
+		-- Default: local tsgo -> local tsc -> global tsgo
+		if local_tsgo and vim.fn.executable(local_tsgo) == 1 then
+			return "tsgo", { local_tsgo, "--lsp", "--stdio" }
+		elseif local_tsc and vim.fn.executable(local_tsc) == 1 then
+			return "tsserver", nil
+		elseif vim.fn.executable("tsgo") == 1 then
+			return "tsgo", { "tsgo", "--lsp", "--stdio" }
 		end
 	end
 
-	-- Fallback to global tsgo
-	if vim.fn.executable("tsgo") == 1 then
-		return "tsgo", { "tsgo", "--lsp", "--stdio" }
-	end
-
-	return nil, nil -- no TypeScript server available
+	return nil, nil
 end
 
 return {
