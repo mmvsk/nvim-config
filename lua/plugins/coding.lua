@@ -38,6 +38,7 @@ return {
 					"regex",
 					"comment",
 					"sql",
+					"python",
 				},
 				highlight = {
 					enable = true,
