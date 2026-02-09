@@ -187,8 +187,8 @@ do
 	})
 
 	vim.api.nvim_create_autocmd({ "BufEnter", "InsertEnter", "InsertLeave" }, {
-		pattern = "*.md",
 		callback = function()
+			if vim.bo.filetype ~= "markdown" then return end
 			last_code_block_state = nil  -- reset to force re-evaluation
 			update_md_indent()
 		end,
@@ -215,9 +215,26 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 vim.api.nvim_create_autocmd("BufEnter", {
 	callback = function()
 		if vim.fn.bufname() == "" and vim.bo.filetype == "" and vim.bo.buftype == "" then
+			vim.b.auto_markdown = true
 			vim.bo.filetype = "markdown"
-			-- Start treesitter highlighting if available
-			pcall(vim.treesitter.start)
+			-- Force-load treesitter (lazy-loaded on BufReadPost, won't fire for unnamed bufs)
+			pcall(function() require("lazy").load({ plugins = { "nvim-treesitter" } }) end)
+			pcall(vim.treesitter.start, 0, "markdown")
+		end
+	end
+})
+
+-- Re-detect filetype when saving a previously unnamed markdown buffer
+-- (e.g. empty scratch → save as .txt → should become text, not stay markdown)
+vim.api.nvim_create_autocmd("BufWritePost", {
+	callback = function()
+		if vim.b.auto_markdown then
+			vim.b.auto_markdown = nil
+			vim.filetype.match({ buf = 0, filename = vim.fn.expand("%:t") })
+			local detected = vim.filetype.match({ buf = 0, filename = vim.api.nvim_buf_get_name(0) })
+			if detected and detected ~= "" then
+				vim.bo.filetype = detected
+			end
 		end
 	end
 })
