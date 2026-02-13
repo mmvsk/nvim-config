@@ -198,7 +198,11 @@ end
 -- Completion
 vim.opt.completeopt = { "menuone", "noselect", "noinsert" }
 
--- Clipboard
+-- Clipboard: force xclip to avoid wl-copy ghost window/hang issues on Wayland
+local d, w = os.getenv("DISPLAY"), os.getenv("WAYLAND_DISPLAY")
+if ((d and d ~= "") or (w and w ~= "")) and vim.fn.executable("xclip") == 1 then
+	vim.g.clipboard = "xclip"
+end
 vim.opt.clipboard = vim.fn.has("unnamedplus") == 1 and "unnamed,unnamedplus" or "unnamed"
 
 -- Restore last cursor position
