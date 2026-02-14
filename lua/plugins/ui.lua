@@ -256,14 +256,16 @@ return {
 		end,
 	},
 
-	-- Color highlighter (Tailwind CSS colors, etc)
+	-- Color highlighter (CSS/SCSS/SASS only)
 	{
 		"NvChad/nvim-colorizer.lua",
-		event = "BufReadPost",  -- Load later to avoid startup probe
+		ft = { "css", "scss", "sass" },
 		config = function()
 			require("colorizer").setup({
+				filetypes = { "css", "scss", "sass" },
 				user_default_options = {
-					tailwind = true,
+					names = true,
+					tailwind = false,
 				},
 			})
 		end,
