@@ -238,6 +238,9 @@ vim.api.nvim_create_autocmd("BufWritePost", {
 	end
 })
 
+-- Disable Insert key (use i/a/o and r/R instead)
+vim.keymap.set({ 'n', 'i', 'v', 'c', 'o', 't' }, '<Insert>', '<Nop>')
+
 -- Make j/k and arrows move by display lines (wrapped) unless a count is given
 vim.keymap.set('n', 'j',  [[v:count == 0 ? 'gj' : 'j']], { expr = true, silent = true })
 vim.keymap.set('n', 'k',  [[v:count == 0 ? 'gk' : 'k']], { expr = true, silent = true })
