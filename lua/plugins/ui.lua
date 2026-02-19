@@ -152,7 +152,6 @@ return {
 	-- Theme
 	{
 		"navarasu/onedark.nvim",
-		--version = "v0.1.0", -- Because [#251](https://github.com/navarasu/onedark.nvim/issues/251) was fixed
 		lazy = false,
 		priority = 1000,
 		config = function()
