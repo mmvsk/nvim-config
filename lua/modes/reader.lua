@@ -1,6 +1,6 @@
--- ~/.config/nvim/lua/config/pager.lua
--- Pager mode entry point: nvim -R -u ~/.config/nvim/lua/config/pager.lua
--- No plugins loaded — just the theme from disk and pager keybindings.
+-- ~/.config/nvim/lua/modes/reader.lua
+-- Pager mode entry point: nvim -R -u ~/.config/nvim/lua/modes/reader.lua
+-- No plugins loaded — just the theme from disk and reader/pager keybindings.
 
 -- Leader keys
 vim.g.mapleader = ","
@@ -28,7 +28,7 @@ vim.opt.writebackup = false
 vim.opt.undofile = false
 vim.opt.shadafile = "NONE"
 
--- UI: pager-specific
+-- UI: reader/pager-specific
 vim.opt.mouse = "a"
 vim.opt.termguicolors = true
 vim.opt.background = "dark"
@@ -66,9 +66,9 @@ if vim.loop.fs_stat(theme_path) then
 	end
 end
 
--- Add config dir to rtp so require("pager.*") works
+-- Add config dir to rtp so require("reader.*") works
 local this_file = debug.getinfo(1, "S").source:sub(2) -- strip leading @
-local config_dir = vim.fn.fnamemodify(this_file, ":h:h:h") -- up from lua/config/pager.lua
+local config_dir = vim.fn.fnamemodify(this_file, ":h:h:h") -- up from lua/modes/reader.lua
 vim.opt.rtp:prepend(config_dir)
 
 -- Pager keymaps
@@ -82,7 +82,7 @@ map("n", "d", "<C-d>", opts)
 map("n", "u", "<C-u>", opts)
 map("n", "g", "gg", opts)
 map("n", "G", "G", opts)
-map("n", "F", function() require("pager.util").toggle_follow() end, opts)
+map("n", "F", function() require("user.reader.util").toggle_follow() end, opts)
 map("n", "w", ":set wrap!<CR>", opts)
 -- /  ?  n  N are native vim search — no mapping needed
 map("n", "<leader>y", ":%y+<CR>", { silent = true, desc = "Yank entire buffer" })
@@ -115,9 +115,9 @@ map("n", "<A-ScrollWheelDown>", "5zl", opts)
 vim.api.nvim_create_autocmd({ "VimEnter", "BufWinEnter" }, {
 	callback = function()
 		-- Check for ANSI escapes and apply highlights
-		local util = require("pager.util")
+		local util = require("user.reader.util")
 		if util.check_escape_sequences() then
-			require("pager.ansi").run()
+			require("user.reader.ansi").run()
 		end
 
 		-- Lock the buffer
