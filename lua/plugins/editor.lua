@@ -27,6 +27,13 @@ return {
 							return false
 						end
 					end
+					-- Suppress completion inside comments and strings (via treesitter)
+					local ctx = require("cmp.config.context")
+					if ctx.in_treesitter_capture("comment") or ctx.in_syntax_group("Comment")
+						or ctx.in_treesitter_capture("string") or ctx.in_syntax_group("String") then
+						return false
+					end
+
 					return true
 				end,
 				mapping = cmp.mapping.preset.insert({
