@@ -14,7 +14,7 @@ return {
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 		config = function()
 			local use_window_picker = vim.g.tree_window_picker == true
-			local last_active_window = nil
+			local last_active_window = {} -- per-tabpage: tabpage_id -> win_id
 
 			-- Only track last active window if NOT using window picker
 			if not use_window_picker then
@@ -22,7 +22,8 @@ return {
 					callback = function()
 						local ft = vim.bo.filetype
 						if ft ~= "NvimTree" then
-							last_active_window = vim.api.nvim_get_current_win()
+							local tab = vim.api.nvim_get_current_tabpage()
+							last_active_window[tab] = vim.api.nvim_get_current_win()
 						end
 					end,
 				})
@@ -88,23 +89,25 @@ return {
 						local function open_in_last_active()
 							local node = api.tree.get_node_under_cursor()
 							if node and node.type == "file" then
+								local tab = vim.api.nvim_get_current_tabpage()
+								local last_win = last_active_window[tab]
 								-- If we have a tracked last active window and it's valid
-								if last_active_window and vim.api.nvim_win_is_valid(last_active_window) then
-									vim.api.nvim_set_current_win(last_active_window)
+								if last_win and vim.api.nvim_win_is_valid(last_win) then
+									vim.api.nvim_set_current_win(last_win)
 									vim.cmd.edit(node.absolute_path)
 								else
-									-- Fallback: find first non-nvim-tree window
-									for _, win in ipairs(vim.api.nvim_list_wins()) do
+									-- Fallback: find first non-nvim-tree window in current tab
+									for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tab)) do
 										local win_buf = vim.api.nvim_win_get_buf(win)
 										local win_ft = vim.api.nvim_buf_get_option(win_buf, "filetype")
 										if win_ft ~= "NvimTree" then
 											vim.api.nvim_set_current_win(win)
 											vim.cmd.edit(node.absolute_path)
-											last_active_window = win
+											last_active_window[tab] = win
 											return
 										end
 									end
-									-- If no other window, just open normally
+									-- If no other window in this tab, just open normally
 									api.node.open.edit()
 								end
 							elseif node and node.type == "directory" then
