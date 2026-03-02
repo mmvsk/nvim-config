@@ -27,11 +27,17 @@ return {
 							return false
 						end
 					end
-					-- Suppress completion inside comments and strings (via treesitter)
+					-- Suppress completion inside comments (all filetypes)
 					local ctx = require("cmp.config.context")
-					if ctx.in_treesitter_capture("comment") or ctx.in_syntax_group("Comment")
-						or ctx.in_treesitter_capture("string") or ctx.in_syntax_group("String") then
+					if ctx.in_treesitter_capture("comment") or ctx.in_syntax_group("Comment") then
 						return false
+					end
+					-- Suppress completion inside strings (except sh/bash where
+					-- variables and command substitutions live inside double-quoted strings)
+					if filetype ~= "sh" and filetype ~= "bash" then
+						if ctx.in_treesitter_capture("string") or ctx.in_syntax_group("String") then
+							return false
+						end
 					end
 
 					return true
@@ -52,6 +58,7 @@ return {
 			-- Integrate autopairs with cmp
 			local cmp_autopairs = require("nvim-autopairs.completion.cmp")
 			cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
+
 		end,
 	},
 

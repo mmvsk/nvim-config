@@ -82,7 +82,17 @@ return {
 				{ name = "clangd", cmd = "clangd" },
 				{ name = "rust_analyzer", cmd = "rust-analyzer" },
 				{ name = "gopls", cmd = "gopls" },
-				{ name = "bashls", cmd = "bash-language-server" },
+				{
+					name = "bashls",
+					cmd = "bash-language-server",
+					opts = {
+						settings = {
+							bashIde = {
+								includeAllWorkspaceSymbols = true,
+							},
+						},
+					},
+				},
 				{ name = "yamlls", cmd = "yaml-language-server" },
 				{ name = "taplo", cmd = "taplo" },
 				{ name = "zls", cmd = "zls" },
