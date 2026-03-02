@@ -265,9 +265,11 @@ return {
 		config = function()
 			require("colorizer").setup({
 				filetypes = { "css", "scss", "sass" },
-				user_default_options = {
-					names = true,
-					tailwind = false,
+				options = {
+					parsers = {
+						css = true,
+						tailwind = true,
+					},
 				},
 			})
 		end,
