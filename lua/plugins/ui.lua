@@ -268,7 +268,7 @@ return {
 				options = {
 					parsers = {
 						css = true,
-						tailwind = true,
+						tailwind = { enable = true },
 					},
 				},
 			})
