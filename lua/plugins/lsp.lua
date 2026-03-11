@@ -153,7 +153,7 @@ return {
 					end
 				end
 				if #enabled > 0 then
-					vim.lsp.enable(unpack_fn(enabled))
+					vim.lsp.enable(enabled)
 				end
 			else
 				-- Legacy API (0.10 and earlier). Only start servers that are installed/executable.

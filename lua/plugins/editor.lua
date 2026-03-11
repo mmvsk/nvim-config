@@ -27,24 +27,44 @@ return {
 							return false
 						end
 					end
-					-- Suppress completion inside comments (all filetypes)
-					local ctx = require("cmp.config.context")
-					if ctx.in_treesitter_capture("comment") or ctx.in_syntax_group("Comment") then
-						return false
-					end
-					-- Suppress completion inside strings (except sh/bash where
-					-- variables and command substitutions live inside double-quoted strings)
-					if filetype ~= "sh" and filetype ~= "bash" then
-						if ctx.in_treesitter_capture("string") or ctx.in_syntax_group("String") then
-							return false
-						end
-					end
 
 					return true
 				end,
 				mapping = cmp.mapping.preset.insert({
-					["<Tab>"] = cmp.mapping.select_next_item(),
-					["<S-Tab>"] = cmp.mapping.select_prev_item(),
+					["<Tab>"] = cmp.mapping(function(fallback)
+						local luasnip = require("luasnip")
+						if cmp.visible() then
+							cmp.select_next_item()
+						elseif luasnip.locally_jumpable(1) then
+							luasnip.jump(1)
+						else
+							fallback()
+						end
+					end, { "i", "s" }),
+					["<S-Tab>"] = cmp.mapping(function(fallback)
+						local luasnip = require("luasnip")
+						if cmp.visible() then
+							cmp.select_prev_item()
+						elseif luasnip.locally_jumpable(-1) then
+							luasnip.jump(-1)
+						else
+							fallback()
+						end
+					end, { "i", "s" }),
+					["<C-n>"] = cmp.mapping(function(fallback)
+						if cmp.visible() then
+							cmp.select_next_item()
+						else
+							fallback()
+						end
+					end, { "i" }),
+					["<C-p>"] = cmp.mapping(function(fallback)
+						if cmp.visible() then
+							cmp.select_prev_item()
+						else
+							fallback()
+						end
+					end, { "i" }),
 					["<CR>"] = cmp.mapping.confirm({ select = false }),
 					["<C-Space>"] = cmp.mapping.complete(),
 				}),
