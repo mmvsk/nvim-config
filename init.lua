@@ -364,3 +364,5 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup("plugins")
 
 vim.opt.laststatus = original_laststatus
+
+require("user.image")

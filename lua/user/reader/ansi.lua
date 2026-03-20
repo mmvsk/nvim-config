@@ -230,6 +230,8 @@ local function ansi2highlight()
 	nvim.nvim_win_set_option(0, "concealcursor", "nv")
 	local pattern = "\27%[([0-9;]*)m"
 	state:clear()
+	state.line = 1
+	state.column = 1
 	namespace = nvim.nvim_create_namespace("")
 	for lnum, line in ipairs(nvim.nvim_buf_get_lines(0, 0, -1, false)) do
 		local start, end_, spec
