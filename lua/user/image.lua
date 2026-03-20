@@ -4,6 +4,8 @@
 
 local api = vim.api
 local font_ratio = "0.4" -- w/h
+local max_width = 0   -- 0 = no cap
+local max_height = 0  -- 0 = no cap
 local group = api.nvim_create_augroup("ImageViewer", { clear = true })
 
 local extensions = {}
@@ -21,13 +23,15 @@ local function render(buf)
 	if not path or not chan then return end
 	local win = vim.fn.bufwinid(buf)
 	if win == -1 then return end
-	local width = api.nvim_win_get_width(win)
-	local height = api.nvim_win_get_height(win)
+	local w = api.nvim_win_get_width(win)
+	local h = api.nvim_win_get_height(win)
+	if max_width > 0 then w = math.min(w, max_width) end
+	if max_height > 0 then h = math.min(h, max_height) end
 
 	local output = vim.fn.system({
 		"chafa", "--format=symbols", "--symbols=legacy",
 		"--font-ratio=" .. font_ratio,
-		"--size=" .. width .. "x" .. height, path,
+		"--size=" .. w .. "x" .. h, path,
 	})
 
 	api.nvim_chan_send(chan, "\27[2J\27[H" .. output)
@@ -45,8 +49,17 @@ api.nvim_create_autocmd("BufReadCmd", {
 		vim.b[buf].image_path = api.nvim_buf_get_name(buf)
 		vim.bo[buf].bufhidden = "wipe"
 
+		local win = vim.fn.bufwinid(buf)
+		if win ~= -1 then
+			vim.wo[win].number = false
+			vim.wo[win].relativenumber = false
+			vim.wo[win].signcolumn = "no"
+			vim.wo[win].foldcolumn = "0"
+		end
+
 		vim.b[buf].image_chan = api.nvim_open_term(buf, {})
 		render(buf)
+
 
 		vim.keymap.set("n", "q", "<cmd>bwipeout<cr>", { buffer = buf })
 		vim.keymap.set("n", "r", function() render(buf) end, { buffer = buf })
