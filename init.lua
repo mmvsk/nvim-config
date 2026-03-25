@@ -17,14 +17,10 @@ vim.g.zen_mode = true
 -- Set to false for mouse workflow (opens in last active window)
 vim.g.tree_window_picker = false
 
--- Filter annoying messages early (before plugins load)
+-- Filter SIXEL warnings early (terminal capability issue over SSH)
 local original_notify = vim.notify
 vim.notify = function(msg, level, opts)
-	if type(msg) == "string" then
-		if msg:match("nvim%-lspconfig.*deprecated") or msg:match("nvim%-lspconfig.*0%.10") then
-			return
-		end
-	end
+	if type(msg) == "string" and msg:match("SIXEL") then return end
 	original_notify(msg, level, opts)
 end
 
@@ -134,66 +130,7 @@ vim.opt.shiftround = true
 
 -- Markdown code block indent: use tabs in fenced code blocks, spaces elsewhere
 vim.g.markdown_code_block_indent = true
-
-do
-	local last_code_block_state = nil
-
-	local function in_code_block()
-		local ok, node = pcall(vim.treesitter.get_node)
-		if not ok or not node then return false end
-		while node do
-			local t = node:type()
-			if t == "fenced_code_block" or t == "code_fence_content" then
-				return true
-			end
-			node = node:parent()
-		end
-		return false
-	end
-
-	local function update_md_indent()
-		if not vim.g.markdown_code_block_indent then return end
-
-		local is_code = in_code_block()
-		if is_code == last_code_block_state then return end  -- debounce: skip if no change
-		last_code_block_state = is_code
-
-		if is_code then
-			vim.opt_local.expandtab = false
-			vim.opt_local.tabstop = 2
-			vim.opt_local.shiftwidth = 2
-			vim.opt_local.softtabstop = 2
-		else
-			vim.opt_local.expandtab = true
-			vim.opt_local.tabstop = 4
-			vim.opt_local.shiftwidth = 4
-			vim.opt_local.softtabstop = 4
-		end
-	end
-
-	vim.api.nvim_create_autocmd("FileType", {
-		pattern = "markdown",
-		callback = function()
-			last_code_block_state = nil  -- reset state for new buffer
-			vim.opt_local.tabstop = 4
-			vim.opt_local.shiftwidth = 4
-			vim.opt_local.softtabstop = 4
-			vim.opt_local.expandtab = true
-			vim.opt_local.autoindent = true
-			vim.opt_local.smartindent = false
-			vim.opt_local.indentexpr = ""
-			vim.opt_local.copyindent = true
-		end,
-	})
-
-	vim.api.nvim_create_autocmd({ "BufEnter", "InsertEnter", "InsertLeave" }, {
-		callback = function()
-			if vim.bo.filetype ~= "markdown" then return end
-			last_code_block_state = nil  -- reset to force re-evaluation
-			update_md_indent()
-		end,
-	})
-end
+require("user.markdown")
 
 -- Completion
 vim.opt.completeopt = { "menuone", "noselect", "noinsert" }
@@ -348,15 +285,15 @@ map("v", "<leader>4f", ":s/    /\\t/ge<CR>:'<,'>s/'/\"/ge<CR>", { silent = true 
 map("n", "<leader>4f", ":s/    /\\t/ge<CR>:s/'/\"/ge<CR>", { silent = true })
 map("v", "<leader>8f", ":s/        /\\t/ge<CR>:'<,'>s/'/\"/ge<CR>", { silent = true })
 map("n", "<leader>8f", ":s/        /\\t/ge<CR>:s/'/\"/ge<CR>", { silent = true })
--- Global LSP formatter
-map("n", "<leader>F", ":lua vim.lsp.buf.format { async = true }<CR>", { silent = true })
+-- Format whole file: 2 spaces to tabs + single to double quotes
+map("n", "<leader>F", ":%s/  /\\t/ge<CR>:%s/'/\"/ge<CR>", { silent = true })
 
 
 local original_laststatus = vim.opt.laststatus:get()
 
 -- Load lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
 	vim.fn.system({ "git", "clone", "https://github.com/folke/lazy.nvim.git", lazypath })
 end
 vim.opt.rtp:prepend(lazypath)

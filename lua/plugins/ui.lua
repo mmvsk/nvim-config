@@ -99,7 +99,7 @@ return {
 									-- Fallback: find first non-nvim-tree window in current tab
 									for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tab)) do
 										local win_buf = vim.api.nvim_win_get_buf(win)
-										local win_ft = vim.api.nvim_buf_get_option(win_buf, "filetype")
+										local win_ft = vim.bo[win_buf].filetype
 										if win_ft ~= "NvimTree" then
 											vim.api.nvim_set_current_win(win)
 											vim.cmd.edit(node.absolute_path)
@@ -247,12 +247,10 @@ return {
 			}
 			vim.notify = notify
 
-			-- Filter to silence annoying messages
+			-- Filter SIXEL warnings (terminal capability issue over SSH)
 			local original = vim.notify
 			vim.notify = function(msg, level, opts)
-				if msg:match("config change detected") then return end
-				if msg:match("SIXEL") then return end
-				if msg:match("nvim%-lspconfig.*deprecated") then return end
+				if type(msg) == "string" and msg:match("SIXEL") then return end
 				original(msg, level, opts)
 			end
 		end,
@@ -275,11 +273,4 @@ return {
 		end,
 	},
 
-	-- Tailwind CSS colorizer for completion menu
-	{
-		"roobert/tailwindcss-colorizer-cmp.nvim",
-		lazy = true,  -- Only load when needed
-		config = true,
-		dependencies = { "nvim-cmp" },
-	},
 }

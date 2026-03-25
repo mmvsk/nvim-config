@@ -6,13 +6,17 @@ if lsp_disabled then
 	return {}
 end
 
-local unpack_fn = table.unpack or unpack
 local config = require("config")
 
--- TypeScript LSP detection
--- preferTypescriptLegacy: local tsc -> global tsc -> local tsgo -> global tsgo
--- default: local tsgo -> local tsc -> global tsgo
+-- TypeScript server detection (cached — result computed once per session)
+-- tsgo (native Go binary) and tsserver (Node-based) are mutually exclusive:
+--   tsgo detected → configured via lspconfig (custom server)
+--   tsserver detected → configured via typescript-tools.nvim (richer code actions)
+local _ts_server, _ts_cmd, _ts_detected = nil, nil, false
 local function detect_typescript_server()
+	if _ts_detected then return _ts_server, _ts_cmd end
+	_ts_detected = true
+
 	local root_markers = { "tsconfig.json", "package.json", ".git" }
 	local root = vim.fs.root(0, root_markers)
 
@@ -22,26 +26,26 @@ local function detect_typescript_server()
 	if config.preferTypescriptLegacy then
 		-- Prefer tsc (typescript-tools): local tsc -> global tsc -> local tsgo -> global tsgo
 		if local_tsc and vim.fn.executable(local_tsc) == 1 then
-			return "tsserver", nil
+			_ts_server = "tsserver"
 		elseif vim.fn.executable("tsc") == 1 then
-			return "tsserver", nil
+			_ts_server = "tsserver"
 		elseif local_tsgo and vim.fn.executable(local_tsgo) == 1 then
-			return "tsgo", { local_tsgo, "--lsp", "--stdio" }
+			_ts_server, _ts_cmd = "tsgo", { local_tsgo, "--lsp", "--stdio" }
 		elseif vim.fn.executable("tsgo") == 1 then
-			return "tsgo", { "tsgo", "--lsp", "--stdio" }
+			_ts_server, _ts_cmd = "tsgo", { "tsgo", "--lsp", "--stdio" }
 		end
 	else
 		-- Default: local tsgo -> local tsc -> global tsgo
 		if local_tsgo and vim.fn.executable(local_tsgo) == 1 then
-			return "tsgo", { local_tsgo, "--lsp", "--stdio" }
+			_ts_server, _ts_cmd = "tsgo", { local_tsgo, "--lsp", "--stdio" }
 		elseif local_tsc and vim.fn.executable(local_tsc) == 1 then
-			return "tsserver", nil
+			_ts_server = "tsserver"
 		elseif vim.fn.executable("tsgo") == 1 then
-			return "tsgo", { "tsgo", "--lsp", "--stdio" }
+			_ts_server, _ts_cmd = "tsgo", { "tsgo", "--lsp", "--stdio" }
 		end
 	end
 
-	return nil, nil
+	return _ts_server, _ts_cmd
 end
 
 return {
