@@ -11,7 +11,8 @@ local group = api.nvim_create_augroup("ImageViewer", { clear = true })
 local extensions = {}
 for _, ext in ipairs({
 	"png", "jpg", "jpeg", "gif", "bmp", "webp",
-	"tiff", "svg", "ico", "avif", "heic", "jxl",
+	"tiff", "avif", "heic", "jxl",
+	--"svg", "ico",
 }) do
 	table.insert(extensions, "*." .. ext)
 	table.insert(extensions, "*." .. ext:upper())
