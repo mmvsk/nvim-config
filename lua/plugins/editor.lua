@@ -104,25 +104,8 @@ return {
 		config = true,
 	},
 
-	-- Commenting (gcc in normal mode, gc in visual mode)
-	{
-		"numToStr/Comment.nvim",
-		event = "VeryLazy",
-		config = function()
-			require("Comment").setup({
-				padding = false,
-			})
-
-			local api = require("Comment.api")
-
-			-- Comment line (normal mode)
-			vim.keymap.set("n", "<leader>c", api.toggle.linewise.current, { desc = "Comment line" })
-
-			-- Comment selection (visual)
-			vim.keymap.set("v", "<leader>c", "<ESC><cmd>lua require('Comment.api').toggle.linewise(vim.fn.visualmode())<CR>",
-				{ desc = "Comment selection", silent = true })
-		end,
-	},
+	-- Commenting: native gc/gcc (built-in since 0.10), with <leader>c alias
+	-- Note: padding is controlled by commentstring (e.g. "// %s" = space, "//%s" = no space)
 
 	-- :%S for smart case-preserving substitution
 	{ "tpope/vim-abolish" },

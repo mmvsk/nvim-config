@@ -262,6 +262,10 @@ map("i", "<A-ScrollWheelDown>", "<C-o>5zl", { silent = true })
 map("v", "<", "<gv")
 map("v", ">", ">gv")
 
+-- Comment line/selection (uses native gc/gcc)
+map("n", "<leader>c", "gcc", { remap = true, silent = true, desc = "Comment line" })
+map("v", "<leader>c", "gc", { remap = true, silent = true, desc = "Comment selection" })
+
 -- Wrap current line at 80 chars at the last space (useful for markdown paragraphs)
 map("n", "<F1>", "081l?\\s\\+<CR>cw<CR><esc>", { silent = true })
 map("n", "<F2>", ":set wrap!<CR>:set linebreak!<CR>", { silent = true })
