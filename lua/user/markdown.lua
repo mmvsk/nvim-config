@@ -53,13 +53,10 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
-vim.api.nvim_create_autocmd({ "BufEnter", "InsertEnter", "InsertLeave" }, {
+vim.api.nvim_create_autocmd({ "CursorHold", "InsertLeave" }, {
 	callback = function()
 		if vim.bo.filetype ~= "markdown" then return end
-		-- Defer to let treesitter finish parsing (avoids race with injected languages)
-		vim.schedule(function()
-			last_code_block_state = nil
-			update_md_indent()
-		end)
+		last_code_block_state = nil
+		update_md_indent()
 	end,
 })
