@@ -39,7 +39,6 @@ if vim.g.is_root then
 end
 
 -- Encoding & shell
-vim.opt.encoding = "utf-8"
 vim.opt.fileencoding = "utf-8"
 vim.opt.fileencodings = { "utf-8", "ucs-bom", "default", "latin1" }
 vim.opt.shell = "/bin/bash"
@@ -68,7 +67,6 @@ vim.opt.redrawtime = 1500  -- Time in ms for redrawing the screen
 -- UI
 vim.opt.mouse = "a"
 vim.opt.mousehide = true
-vim.opt.termguicolors = true
 vim.opt.background = "dark"
 vim.opt.number = true
 vim.opt.relativenumber = false
@@ -153,9 +151,6 @@ vim.api.nvim_create_autocmd("BufEnter", {
 		if vim.fn.bufname() == "" and vim.bo.filetype == "" and vim.bo.buftype == "" then
 			vim.b.auto_markdown = true
 			vim.bo.filetype = "markdown"
-			-- Force-load treesitter (lazy-loaded on BufReadPost, won't fire for unnamed bufs)
-			pcall(function() require("lazy").load({ plugins = { "nvim-treesitter" } }) end)
-			pcall(vim.treesitter.start, 0, "markdown")
 		end
 	end
 })

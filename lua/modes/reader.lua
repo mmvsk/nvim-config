@@ -7,7 +7,6 @@ vim.g.mapleader = ","
 vim.g.maplocalleader = "_"
 
 -- Encoding & shell
-vim.opt.encoding = "utf-8"
 vim.opt.fileencoding = "utf-8"
 vim.opt.fileencodings = { "utf-8", "ucs-bom", "default", "latin1" }
 vim.opt.shell = "/bin/bash"
@@ -30,7 +29,6 @@ vim.opt.shadafile = "NONE"
 
 -- UI: reader/pager-specific
 vim.opt.mouse = "a"
-vim.opt.termguicolors = true
 vim.opt.background = "dark"
 vim.opt.number = false
 vim.opt.relativenumber = false
@@ -57,7 +55,7 @@ vim.opt.clipboard = "unnamedplus"
 
 -- Load onedark directly from lazy's install path (no plugin manager)
 local theme_path = vim.fn.stdpath("data") .. "/lazy/onedark.nvim"
-if vim.loop.fs_stat(theme_path) then
+if vim.uv.fs_stat(theme_path) then
 	vim.opt.rtp:prepend(theme_path)
 	local ok, onedark = pcall(require, "onedark")
 	if ok then

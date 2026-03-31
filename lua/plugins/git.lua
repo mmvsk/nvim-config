@@ -16,7 +16,7 @@ return {
 				},
 				on_attach = function(bufnr)
 					local map = function(mode, lhs, rhs, desc)
-						vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc, silent = true })
+						vim.keymap.set(mode, lhs, rhs, { buf = bufnr, desc = desc, silent = true })
 					end
 
 					map("n", "]g", require("gitsigns").next_hunk, "Next Git hunk")

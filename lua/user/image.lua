@@ -62,8 +62,8 @@ api.nvim_create_autocmd("BufReadCmd", {
 		render(buf)
 
 
-		vim.keymap.set("n", "q", "<cmd>bwipeout<cr>", { buffer = buf })
-		vim.keymap.set("n", "r", function() render(buf) end, { buffer = buf })
+		vim.keymap.set("n", "q", "<cmd>bwipeout<cr>", { buf = buf })
+		vim.keymap.set("n", "r", function() render(buf) end, { buf = buf })
 	end,
 })
 

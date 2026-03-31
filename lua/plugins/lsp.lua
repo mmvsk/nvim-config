@@ -10,7 +10,7 @@ local config = require("config")
 
 -- TypeScript server detection (cached — result computed once per session)
 -- tsgo (native Go binary) and tsserver (Node-based) are mutually exclusive:
---   tsgo detected → configured via lspconfig (custom server)
+--   tsgo detected → configured via native vim.lsp.config
 --   tsserver detected → configured via typescript-tools.nvim (richer code actions)
 local _ts_server, _ts_cmd, _ts_detected = nil, nil, false
 local function detect_typescript_server()
@@ -58,13 +58,13 @@ return {
 		build = ":MasonUpdate",
 	},
 
-	-- Native LSP support (Neovim 0.11+ API)
+	-- lspconfig plugin (only needed internally by typescript-tools.nvim)
+	{ "neovim/nvim-lspconfig", lazy = true },
+
+	-- Native LSP setup (Neovim 0.12 API — no lspconfig needed)
 	{
-		"neovim/nvim-lspconfig",
-		dependencies = {
-			"williamboman/mason.nvim",
-			"hrsh7th/cmp-nvim-lsp",
-		},
+		"hrsh7th/cmp-nvim-lsp",
+		dependencies = { "williamboman/mason.nvim" },
 		cond = not lsp_disabled,
 		config = function()
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
@@ -110,22 +110,19 @@ return {
 				return not cmd or cmd == "" or vim.fn.executable(cmd) == 1
 			end
 
-			-- Set up LSP keybindings using LspAttach autocmd (more reliable)
+			-- LSP keybindings (0.12 defaults: K, grr, gra, grn, gri, grt, grx)
 			vim.api.nvim_create_autocmd("LspAttach", {
 				group = vim.api.nvim_create_augroup("UserLspConfig", {}),
 				callback = function(ev)
-					local opts = { buffer = ev.buf, silent = true }
+					local opts = { buf = ev.buf, silent = true }
 
-					-- Go to definition (works with TypeScript path aliases via LSP)
 					vim.keymap.set("n", "gd", vim.lsp.buf.definition, vim.tbl_extend("force", opts, { desc = "Go to definition" }))
 
-					-- Go to file - smart function that tries LSP first, falls back to default gf
+					-- Go to file - tries LSP definition first, falls back to default gf
 					vim.keymap.set("n", "gf", function()
-						-- Try LSP definition first (works for import paths with aliases)
-						local params = vim.lsp.util.make_position_params()
+						local params = vim.lsp.util.make_position_params(0, "utf-8")
 						vim.lsp.buf_request(0, "textDocument/definition", params, function(err, result)
 							if err or not result or vim.tbl_isempty(result) then
-								-- Fall back to default gf behavior
 								local ok, _ = pcall(vim.cmd, "normal! gf")
 								if not ok then
 									vim.notify("No file found under cursor", vim.log.levels.WARN)
@@ -136,70 +133,36 @@ return {
 						end)
 					end, vim.tbl_extend("force", opts, { desc = "Go to file (LSP-aware)" }))
 
-					-- Other useful LSP keymaps
 					vim.keymap.set("n", "gD", vim.lsp.buf.declaration, vim.tbl_extend("force", opts, { desc = "Go to declaration" }))
-					vim.keymap.set("n", "gr", vim.lsp.buf.references, vim.tbl_extend("force", opts, { desc = "Go to references" }))
-					vim.keymap.set("n", "gi", vim.lsp.buf.implementation, vim.tbl_extend("force", opts, { desc = "Go to implementation" }))
-					vim.keymap.set("n", "K", vim.lsp.buf.hover, vim.tbl_extend("force", opts, { desc = "Hover documentation" }))
 					vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, vim.tbl_extend("force", opts, { desc = "Rename symbol" }))
 					vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, vim.tbl_extend("force", opts, { desc = "Code action" }))
 				end,
 			})
 
-			-- Neovim 0.11+ has native vim.lsp.config API, 0.10 uses lspconfig
-			if vim.fn.has("nvim-0.11") == 1 then
-				local enabled = {}
-				for _, spec in ipairs(server_specs) do
-					if server_available(spec.cmd) then
-						local opts = vim.tbl_extend("force", { capabilities = capabilities }, spec.opts or {})
-						vim.lsp.config(spec.name, opts)
-						table.insert(enabled, spec.name)
-					end
-				end
-				if #enabled > 0 then
-					vim.lsp.enable(enabled)
-				end
-			else
-				-- Legacy API (0.10 and earlier). Only start servers that are installed/executable.
-				local lspconfig = require("lspconfig")
-				for _, spec in ipairs(server_specs) do
-					if server_available(spec.cmd) and lspconfig[spec.name] then
-						local opts = vim.tbl_extend("force", { capabilities = capabilities }, spec.opts or {})
-						lspconfig[spec.name].setup(opts)
-					end
+			-- Register language servers (native vim.lsp.config)
+			local enabled = {}
+			for _, spec in ipairs(server_specs) do
+				if server_available(spec.cmd) then
+					local opts = vim.tbl_extend("force", { capabilities = capabilities }, spec.opts or {})
+					vim.lsp.config(spec.name, opts)
+					table.insert(enabled, spec.name)
 				end
 			end
 
 			-- TypeScript: tsgo native LSP (if available)
 			local ts_server, ts_cmd = detect_typescript_server()
 			if ts_server == "tsgo" and ts_cmd then
-				local lspconfig = require("lspconfig")
-				local configs = require("lspconfig.configs")
-
-				-- Register tsgo as a custom LSP config
-				if not configs.tsgo then
-					configs.tsgo = {
-						default_config = {
-							cmd = ts_cmd,
-							filetypes = {
-								"javascript",
-								"javascriptreact",
-								"typescript",
-								"typescriptreact",
-							},
-							root_dir = lspconfig.util.root_pattern(
-								"tsconfig.json",
-								"package.json",
-								".git"
-							),
-						},
-					}
-				end
-
-				lspconfig.tsgo.setup({
-					cmd = ts_cmd, -- ensure dynamic cmd is used even if config was registered before
+				vim.lsp.config("tsgo", {
+					cmd = ts_cmd,
+					filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
+					root_markers = { "tsconfig.json", "package.json", ".git" },
 					capabilities = capabilities,
 				})
+				table.insert(enabled, "tsgo")
+			end
+
+			if #enabled > 0 then
+				vim.lsp.enable(enabled)
 			end
 		end,
 	},
@@ -239,7 +202,7 @@ return {
 					end,
 				})
 			end
-			-- If ts_server == "tsgo", do nothing here (handled in lspconfig section)
+			-- If ts_server == "tsgo", do nothing here (handled in native LSP setup)
 		end,
 	},
 }

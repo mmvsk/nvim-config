@@ -78,7 +78,7 @@ return {
 				},
 				on_attach = function(bufnr)
 					local api = require("nvim-tree.api")
-					local opts = { buffer = bufnr, noremap = true, silent = true }
+					local opts = { buf = bufnr, noremap = true, silent = true }
 
 					if use_window_picker then
 						-- Use default behavior with A/B/C prompt

@@ -4,8 +4,10 @@
 local last_code_block_state = nil
 
 local function in_code_block()
-	local ok, node = pcall(vim.treesitter.get_node)
-	if not ok or not node then return false end
+	local ok, parser = pcall(vim.treesitter.get_parser, 0)
+	if not ok or not parser then return false end
+	local ok2, node = pcall(vim.treesitter.get_node)
+	if not ok2 or not node then return false end
 	while node do
 		local t = node:type()
 		if t == "fenced_code_block" or t == "code_fence_content" then
@@ -54,7 +56,10 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.api.nvim_create_autocmd({ "BufEnter", "InsertEnter", "InsertLeave" }, {
 	callback = function()
 		if vim.bo.filetype ~= "markdown" then return end
-		last_code_block_state = nil
-		update_md_indent()
+		-- Defer to let treesitter finish parsing (avoids race with injected languages)
+		vim.schedule(function()
+			last_code_block_state = nil
+			update_md_indent()
+		end)
 	end,
 })

@@ -30,8 +30,7 @@ return {
 					"jsonc",
 					"prisma",
 					"dockerfile",
-					"markdown",
-					"markdown_inline",
+					-- markdown/markdown_inline: 0.12 bundles these natively
 					"lua",
 					"vim",
 					"vimdoc",
