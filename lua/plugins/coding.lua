@@ -4,6 +4,7 @@ return {
 	-- Treesitter (fast and accurate syntax highlighting)
 	{
 		"nvim-treesitter/nvim-treesitter",
+		branch = "master",
 		build = ":TSUpdate",
 		event = { "BufReadPost", "BufNewFile" },
 		dependencies = { "RRethy/nvim-treesitter-endwise" },
