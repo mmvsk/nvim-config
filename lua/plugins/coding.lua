@@ -60,6 +60,21 @@ return {
 				},
 			}
 
+			-- Fix kind-eq? predicate for nvim 0.12 (match entries are now node lists)
+			vim.treesitter.query.add_predicate("kind-eq?", function(match, _, _, pred)
+				local nodes = match[pred[2]]
+				if not nodes or #nodes == 0 then
+					return true
+				end
+				local types = { unpack(pred, 3) }
+				for _, node in ipairs(nodes) do
+					if not vim.tbl_contains(types, node:type()) then
+						return false
+					end
+				end
+				return true
+			end, { force = true })
+
 			-- Ensure treesitter comment highlights link to Comment group for all languages
 			-- The onedark theme (as of Nov 2025) only sets @comment, not language-specific ones
 			vim.api.nvim_create_autocmd("FileType", {
