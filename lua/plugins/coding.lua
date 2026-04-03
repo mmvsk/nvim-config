@@ -1,88 +1,42 @@
 -- Coding Plugins: treesitter, language-specific tools
 
 return {
-	-- Treesitter (fast and accurate syntax highlighting)
+	-- Treesitter: parsers, queries, and features
 	{
 		"nvim-treesitter/nvim-treesitter",
+		branch = "main",
+		lazy = false,
 		build = ":TSUpdate",
-		event = { "BufReadPost", "BufNewFile" },
 		dependencies = { "RRethy/nvim-treesitter-endwise" },
 		config = function()
-			require("nvim-treesitter.configs").setup {
-				ensure_installed = {
-					"typescript",
-					"javascript",
-					"tsx",
-					"html",
-					"css",
-					"scss",
-					"c",
-					"cpp",
-					"rust",
-					"go",
-					"bash",
-					"make",
-					"zig",
-					"yaml",
-					"toml",
-					"json",
-					"json5",
-					"jsonc",
-					"prisma",
-					"dockerfile",
-					-- markdown/markdown_inline: 0.12 bundles these natively
-					"lua",
-					"vim",
-					"vimdoc",
-					"query",
-					"regex",
-					"comment",
-					"sql",
-					"python",
-				},
-				highlight = {
-					enable = true,
-					additional_vim_regex_highlighting = false,
-					disable = function(lang, buf)
-						-- 0.12 handles markdown highlighting natively (parser .so removed)
-						if lang == "markdown" or lang == "markdown_inline" then return true end
-						local max = 100 * 1024
-						local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(buf))
-						return ok and stats and stats.size > max
-					end,
-				},
-				indent = {
-					enable = true,
-					disable = { "markdown" },
-				},
-				endwise = {
-					enable = true,
-				},
+			require("nvim-treesitter").install {
+				"typescript", "javascript", "tsx", "html", "css", "scss",
+				"c", "cpp", "rust", "go", "bash", "make", "zig",
+				"yaml", "toml", "json", "json5", "prisma", "dockerfile",
+				"lua", "vim", "vimdoc", "query", "regex", "comment", "sql", "python",
 			}
 
-			-- Fix kind-eq? predicate for nvim 0.12 (match entries are now node lists)
-			vim.treesitter.query.add_predicate("kind-eq?", function(match, _, _, pred)
-				local nodes = match[pred[2]]
-				if not nodes or #nodes == 0 then
-					return true
-				end
-				local types = { unpack(pred, 3) }
-				for _, node in ipairs(nodes) do
-					if not vim.tbl_contains(types, node:type()) then
-						return false
-					end
-				end
-				return true
-			end, { force = true })
-
-			-- Ensure treesitter comment highlights link to Comment group for all languages
-			-- The onedark theme (as of Nov 2025) only sets @comment, not language-specific ones
 			vim.api.nvim_create_autocmd("FileType", {
 				callback = function(args)
-					local ft = args.match
-					-- Link language-specific comment highlight to Comment
+					local buf = args.buf
+					-- Skip large files
+					local max = 100 * 1024
+					local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(buf))
+					if ok and stats and stats.size > max then return end
+					-- Enable treesitter highlighting (no-op if no parser)
+					if not pcall(vim.treesitter.start, buf) then return end
+					-- Enable treesitter indentation (skip markdown)
+					if args.match ~= "markdown" then
+						vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+					end
+				end,
+			})
+
+			-- Ensure treesitter comment highlights link to Comment group for all languages
+			vim.api.nvim_create_autocmd("FileType", {
+				callback = function(args)
 					vim.schedule(function()
-						vim.api.nvim_set_hl(0, "@comment." .. ft, { link = "Comment" })
+						vim.api.nvim_set_hl(0, "@comment." .. args.match, { link = "Comment" })
 					end)
 				end,
 			})
