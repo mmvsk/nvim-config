@@ -127,7 +127,7 @@ vim.opt.preserveindent = true
 vim.opt.shiftround = true
 
 -- Markdown code block indent: use tabs in fenced code blocks, spaces elsewhere
-vim.g.markdown_code_block_indent = true
+vim.g.markdown_code_block_indent = false
 require("user.markdown")
 
 -- Completion
