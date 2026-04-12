@@ -10,11 +10,11 @@ local config = require("config")
 
 -- TypeScript server detection (cached — result computed once per session)
 -- tsgo (native Go binary) and tsserver (Node-based) are mutually exclusive:
---   tsgo detected → configured via native vim.lsp.config
+--   tsgo detected → configured via native vim.lsp.config (upstream nvim-lspconfig settings)
 --   tsserver detected → configured via typescript-tools.nvim (richer code actions)
-local _ts_server, _ts_cmd, _ts_detected = nil, nil, false
+local _ts_server, _ts_scope, _ts_detected = nil, nil, false
 local function detect_typescript_server()
-	if _ts_detected then return _ts_server, _ts_cmd end
+	if _ts_detected then return _ts_server, _ts_scope end
 	_ts_detected = true
 
 	local root_markers = { "tsconfig.json", "package.json", ".git" }
@@ -23,30 +23,63 @@ local function detect_typescript_server()
 	local local_tsgo = root and (root .. "/node_modules/.bin/tsgo") or nil
 	local local_tsc = root and (root .. "/node_modules/.bin/tsc") or nil
 
-	if config.preferTypescriptLegacy then
-		-- Prefer tsc (typescript-tools): local tsc -> global tsc -> local tsgo -> global tsgo
-		if local_tsc and vim.fn.executable(local_tsc) == 1 then
-			_ts_server = "tsserver"
-		elseif vim.fn.executable("tsc") == 1 then
-			_ts_server = "tsserver"
-		elseif local_tsgo and vim.fn.executable(local_tsgo) == 1 then
-			_ts_server, _ts_cmd = "tsgo", { local_tsgo, "--lsp", "--stdio" }
-		elseif vim.fn.executable("tsgo") == 1 then
-			_ts_server, _ts_cmd = "tsgo", { "tsgo", "--lsp", "--stdio" }
-		end
-	else
-		-- Default: local tsgo -> local tsc -> global tsgo
-		if local_tsgo and vim.fn.executable(local_tsgo) == 1 then
-			_ts_server, _ts_cmd = "tsgo", { local_tsgo, "--lsp", "--stdio" }
-		elseif local_tsc and vim.fn.executable(local_tsc) == 1 then
-			_ts_server = "tsserver"
-		elseif vim.fn.executable("tsgo") == 1 then
-			_ts_server, _ts_cmd = "tsgo", { "tsgo", "--lsp", "--stdio" }
+	-- Resolution: always local before global; preferTsGo controls tsc-vs-tsgo order
+	-- Each candidate: { binary, server_type, scope }
+	local candidates = config.preferTsGo
+		and {
+			{ local_tsgo, "tsgo", "local" },
+			{ local_tsc, "tsserver", "local" },
+			{ "tsgo", "tsgo", "global" },
+			{ "tsc", "tsserver", "global" },
+		}
+		or {
+			{ local_tsc, "tsserver", "local" },
+			{ local_tsgo, "tsgo", "local" },
+			{ "tsc", "tsserver", "global" },
+			{ "tsgo", "tsgo", "global" },
+		}
+
+	for _, c in ipairs(candidates) do
+		local bin, server, scope = c[1], c[2], c[3]
+		if bin and vim.fn.executable(bin) == 1 then
+			_ts_server, _ts_scope = server, scope
+			break
 		end
 	end
 
-	return _ts_server, _ts_cmd
+	return _ts_server, _ts_scope
 end
+
+vim.api.nvim_create_user_command("TsInfo", function()
+	local ts, scope = detect_typescript_server()
+	local root = vim.fs.root(0, { "tsconfig.json", "package.json", ".git" })
+	local local_tsgo = root and (root .. "/node_modules/.bin/tsgo") or nil
+	local local_tsc = root and (root .. "/node_modules/.bin/tsc") or nil
+	local global_tsc = vim.fn.exepath("tsc")
+	local global_tsgo = vim.fn.exepath("tsgo")
+	if global_tsc == "" then global_tsc = nil end
+	if global_tsgo == "" then global_tsgo = nil end
+
+	local active = ts and (ts .. " (" .. scope .. ")") or "none"
+	local lines = { "active: " .. active }
+	table.insert(lines, "root: " .. (root or "-"))
+
+	local function probe(label, bin)
+		if not bin then return end
+		if vim.fn.executable(bin) ~= 1 then return end
+		local ver = vim.trim(vim.fn.system({ bin, "--version" }))
+		table.insert(lines, label .. ": " .. bin .. " (" .. ver .. ")")
+	end
+
+	probe("local tsc", local_tsc)
+	probe("local tsgo", local_tsgo)
+	probe("global tsc", global_tsc)
+	probe("global tsgo", global_tsgo)
+
+	table.insert(lines, "config: preferTsGo=" .. tostring(config.preferTsGo))
+
+	vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO)
+end, { desc = "Show TypeScript server info" })
 
 return {
 	-- LSP installer (install servers with :Mason)
@@ -149,13 +182,49 @@ return {
 				end
 			end
 
-			-- TypeScript: tsgo native LSP (if available)
-			local ts_server, ts_cmd = detect_typescript_server()
-			if ts_server == "tsgo" and ts_cmd then
+			-- TypeScript: tsgo native LSP (upstream nvim-lspconfig settings)
+			local ts_server, _ = detect_typescript_server()
+			if ts_server == "tsgo" then
 				vim.lsp.config("tsgo", {
-					cmd = ts_cmd,
+					cmd = function(dispatchers, cfg)
+						local cmd = "tsgo"
+						local local_cmd = (cfg or {}).root_dir and cfg.root_dir .. "/node_modules/.bin/tsgo"
+						if local_cmd and vim.fn.executable(local_cmd) == 1 then
+							cmd = local_cmd
+						end
+						return vim.lsp.rpc.start({ cmd, "--lsp", "--stdio" }, dispatchers)
+					end,
 					filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
-					root_markers = { "tsconfig.json", "package.json", ".git" },
+					root_dir = function(bufnr, on_dir)
+						local root_markers = { "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb", "bun.lock" }
+						root_markers = vim.fn.has("nvim-0.11.3") == 1 and { root_markers, { ".git" } }
+							or vim.list_extend(root_markers, { ".git" })
+						local deno_root = vim.fs.root(bufnr, { "deno.json", "deno.jsonc" })
+						local deno_lock_root = vim.fs.root(bufnr, { "deno.lock" })
+						local project_root = vim.fs.root(bufnr, root_markers)
+						if deno_lock_root and (not project_root or #deno_lock_root > #project_root) then
+							return
+						end
+						if deno_root and (not project_root or #deno_root >= #project_root) then
+							return
+						end
+						on_dir(project_root or vim.fn.getcwd())
+					end,
+					settings = {
+						typescript = {
+							inlayHints = {
+								parameterNames = {
+									enabled = "literals",
+									suppressWhenArgumentMatchesName = true,
+								},
+								parameterTypes = { enabled = true },
+								variableTypes = { enabled = true },
+								propertyDeclarationTypes = { enabled = true },
+								functionLikeReturnTypes = { enabled = true },
+								enumMemberValues = { enabled = true },
+							},
+						},
+					},
 					capabilities = capabilities,
 				})
 				table.insert(enabled, "tsgo")
@@ -167,8 +236,7 @@ return {
 		end,
 	},
 
-	-- TypeScript via tsserver (fallback when tsgo not available)
-	-- Detects: local tsgo -> local tsc -> global tsgo -> warning
+	-- TypeScript via tsserver (when detection picks tsc over tsgo)
 	{
 		"pmizio/typescript-tools.nvim",
 		dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },

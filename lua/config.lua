@@ -2,8 +2,9 @@
 -- This file contains user preferences that can be toggled
 
 return {
-	-- TypeScript LSP: prefer legacy tsc over tsgo
-	-- When true: local tsc -> global tsc -> local tsgo -> global tsgo
-	-- When false: local tsgo -> local tsc -> global tsgo (default)
-	preferTypescriptLegacy = true,
+	-- TypeScript LSP: prefer tsgo over tsc
+	-- Resolution always tries local before global.
+	-- When false: local tsc -> local tsgo -> global tsc -> global tsgo
+	-- When true:  local tsgo -> local tsc -> global tsgo -> global tsc
+	preferTsGo = false,
 }
