@@ -222,7 +222,7 @@ vim.o.tabline = "%!v:lua.require'user.tabnames'.tabline()"
 vim.api.nvim_create_user_command("TabRename", function(opts)
 	require("user.tabnames").set(opts.args)
 end, { nargs = 1 })
-vim.api.nvim_create_user_command("TabooRename", function(opts)
+vim.api.nvim_create_user_command("TN", function(opts)
 	require("user.tabnames").set(opts.args)
 end, { nargs = 1 })
 
