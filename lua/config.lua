@@ -6,5 +6,5 @@ return {
 	-- Resolution always tries local before global.
 	-- When false: local tsc -> local tsgo -> global tsc -> global tsgo
 	-- When true:  local tsgo -> local tsc -> global tsgo -> global tsc
-	preferTsGo = false,
+	preferTsGo = true,
 }
