@@ -234,24 +234,35 @@ return {
 		end,
 	},
 
-	-- Notifications
+	-- QoL: notifier, picker, and on-demand utilities (snacks)
 	{
-		"rcarriga/nvim-notify",
-		event = "VeryLazy",
-		config = function()
-			local notify = require("notify")
-			notify.setup {
-				timeout = 2000,
-				stages = "static",
-				top_down = false,
-			}
-			vim.notify = notify
-
-			-- Filter SIXEL warnings (terminal capability issue over SSH)
-			local original = vim.notify
-			vim.notify = function(msg, level, opts)
+		"folke/snacks.nvim",
+		priority = 1000,
+		lazy = false,
+		opts = {
+			notifier = { enabled = true },
+			picker = { enabled = true },
+			bigfile = { enabled = true },
+			quickfile = { enabled = true },
+			words = { enabled = true },
+			input = { enabled = true },
+		},
+		keys = {
+			{ "<leader>ff", function() Snacks.picker.files() end, desc = "Find files" },
+			{ "<leader>fg", function() Snacks.picker.grep() end, desc = "Live grep" },
+			{ "<leader>fb", function() Snacks.picker.buffers() end, desc = "Buffers" },
+			{ "<leader>fr", function() Snacks.picker.recent() end, desc = "Recent files" },
+			{ "<leader>fh", function() Snacks.picker.help() end, desc = "Help tags" },
+			{ "<leader>rf", function() Snacks.rename.rename_file() end, desc = "Rename file (LSP-aware)" },
+			{ "<leader>bd", function() Snacks.bufdelete() end, desc = "Delete buffer (keep layout)" },
+		},
+		config = function(_, opts)
+			require("snacks").setup(opts)
+			-- snacks now owns vim.notify; re-apply SIXEL filter (terminal lacks sixel over SSH)
+			local snotify = vim.notify
+			vim.notify = function(msg, level, o)
 				if type(msg) == "string" and msg:match("SIXEL") then return end
-				original(msg, level, opts)
+				snotify(msg, level, o)
 			end
 		end,
 	},

@@ -37,10 +37,8 @@ return {
 			vim.api.nvim_create_autocmd("FileType", {
 				callback = function(args)
 					local buf = args.buf
-					-- Skip large files
-					local max = 100 * 1024
-					local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(buf))
-					if ok and stats and stats.size > max then return end
+					-- Defer large-file handling to snacks.bigfile (sets vim.b.bigfile at BufReadPre)
+					if vim.b[buf].bigfile then return end
 					-- Enable treesitter highlighting (no-op if no parser)
 					if not pcall(vim.treesitter.start, buf) then return end
 					-- Enable treesitter indentation (skip markdown)

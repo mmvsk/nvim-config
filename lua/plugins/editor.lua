@@ -1,76 +1,31 @@
 -- Editor Plugins: completion, autopairs, surround, commenting, alignment, etc.
 
 return {
-	-- Autocompletion (like CoC but native)
+	-- Autocompletion (native fuzzy completion)
 	{
-		"hrsh7th/nvim-cmp",
-		event = "InsertEnter",
-		dependencies = {
-			"hrsh7th/cmp-nvim-lsp",
-			"hrsh7th/cmp-path",
+		"saghen/blink.cmp",
+		version = "*",   -- release tag → prebuilt fuzzy binary
+		lazy = false,    -- load at startup; LSP capabilities depend on it
+		opts = {
+			-- Disable completion in prose / unknown buffers (ports old nvim-cmp behavior)
+			enabled = function()
+				return not vim.tbl_contains({ "markdown", "text", "" }, vim.bo.filetype)
+			end,
+			keymap = {
+				preset = "enter",                          -- <CR> accepts only when an item is selected
+				["<Tab>"]     = { "select_next", "fallback" },
+				["<S-Tab>"]   = { "select_prev", "fallback" },
+				["<C-n>"]     = { "select_next", "fallback" },
+				["<C-p>"]     = { "select_prev", "fallback" },
+				["<C-Space>"] = { "show", "show_documentation", "hide_documentation" },
+			},
+			completion = {
+				list = { selection = { preselect = false, auto_insert = false } }, -- mirror old noselect + confirm{select=false}
+				accept = { auto_brackets = { enabled = true } },
+			},
+			sources = { default = { "lsp", "path" } },     -- match old sources (no buffer/snippet plugin)
+			fuzzy = { implementation = "prefer_rust_with_warning" },
 		},
-		config = function()
-			local cmp = require("cmp")
-			cmp.setup {
-				-- Disable autocomplete for text-based files
-				enabled = function()
-					local filetype = vim.bo.filetype
-					local disabled_filetypes = {
-						"markdown",
-						"text",
-						"", -- unknown/no filetype
-					}
-					for _, ft in ipairs(disabled_filetypes) do
-						if filetype == ft then
-							return false
-						end
-					end
-
-					return true
-				end,
-				mapping = cmp.mapping.preset.insert({
-					["<Tab>"] = cmp.mapping(function(fallback)
-						if cmp.visible() then
-							cmp.select_next_item()
-						else
-							fallback()
-						end
-					end, { "i", "s" }),
-					["<S-Tab>"] = cmp.mapping(function(fallback)
-						if cmp.visible() then
-							cmp.select_prev_item()
-						else
-							fallback()
-						end
-					end, { "i", "s" }),
-					["<C-n>"] = cmp.mapping(function(fallback)
-						if cmp.visible() then
-							cmp.select_next_item()
-						else
-							fallback()
-						end
-					end, { "i" }),
-					["<C-p>"] = cmp.mapping(function(fallback)
-						if cmp.visible() then
-							cmp.select_prev_item()
-						else
-							fallback()
-						end
-					end, { "i" }),
-					["<CR>"] = cmp.mapping.confirm({ select = false }),
-					["<C-Space>"] = cmp.mapping.complete(),
-				}),
-				sources = {
-					{ name = "nvim_lsp" },
-					{ name = "path" },
-				},
-			}
-
-			-- Integrate autopairs with cmp
-			local cmp_autopairs = require("nvim-autopairs.completion.cmp")
-			cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
-
-		end,
 	},
 
 	-- Autopairs (auto-close brackets, quotes, etc.)
@@ -127,43 +82,6 @@ return {
 				default_mappings = true, -- enable 'dm', 'm<space>', etc.
 			}
 		end,
-	},
-
-	-- Fuzzy finder (ESSENTIAL!)
-	{
-		"nvim-telescope/telescope.nvim",
-		cmd = "Telescope",
-		keys = {
-			{ "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find files" },
-			{ "<leader>fg", "<cmd>Telescope live_grep<cr>", desc = "Live grep" },
-			{ "<leader>fb", "<cmd>Telescope buffers<cr>", desc = "Buffers" },
-			{ "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Help tags" },
-			{ "<leader>fr", "<cmd>Telescope oldfiles<cr>", desc = "Recent files" },
-		},
-		dependencies = { "nvim-lua/plenary.nvim" },
-		config = function()
-			require("telescope").setup({
-				defaults = {
-					layout_strategy = "horizontal",
-					layout_config = {
-						height = 0.9,
-						width = 0.9,
-					},
-				},
-			})
-		end,
-	},
-
-	-- Session management
-	{
-		"folke/persistence.nvim",
-		event = "BufReadPre",
-		opts = {},
-		keys = {
-			{ "<leader>ss", function() require("persistence").load() end, desc = "Restore Session" },
-			{ "<leader>sl", function() require("persistence").load({ last = true }) end, desc = "Restore Last Session" },
-			{ "<leader>sd", function() require("persistence").stop() end, desc = "Don't Save Session" },
-		},
 	},
 
 }

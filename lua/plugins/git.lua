@@ -22,8 +22,7 @@ return {
 					map("n", "]g", require("gitsigns").next_hunk, "Next Git hunk")
 					map("n", "[g", require("gitsigns").prev_hunk, "Prev Git hunk")
 					map("n", "<leader>Gb", require("gitsigns").blame_line, "Blame line")
-					map("n", "<leader>Gs", require("gitsigns").stage_hunk, "Stage hunk")
-					map("n", "<leader>Gu", require("gitsigns").undo_stage_hunk, "Undo stage hunk")
+					map("n", "<leader>Gs", require("gitsigns").stage_hunk, "Stage/unstage hunk (toggle)")
 					map("n", "<leader>Gr", require("gitsigns").reset_hunk, "Reset hunk")
 				end,
 			}
