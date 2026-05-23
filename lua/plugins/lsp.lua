@@ -28,7 +28,7 @@ return {
 				underline = true,
 				update_in_insert = false,
 				virtual_text = false,
-				virtual_lines = { current_line = true },
+				virtual_lines = false, -- no auto popups; open manually with gl / <leader>d
 				signs = true,
 				float = { border = "rounded", source = true },
 			})
