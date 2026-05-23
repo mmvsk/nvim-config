@@ -137,6 +137,7 @@ return {
 				{ name = "dockerls", cmd = "docker-langserver" },
 				{ name = "jsonls", cmd = "vscode-json-language-server" },
 				{ name = "pyright", cmd = "pyright-langserver" },
+				{ name = "expert", cmd = "expert" },
 			}
 
 			local function server_available(cmd)

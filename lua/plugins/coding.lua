@@ -31,6 +31,7 @@ return {
 				"yaml", "toml", "json", "json5", "prisma", "dockerfile",
 				"lua", "vim", "vimdoc", "query", "regex", "comment", "sql", "python",
 				"d2", "mermaid",
+				"elixir", "heex", "eex",
 			}
 
 			vim.api.nvim_create_autocmd("FileType", {
