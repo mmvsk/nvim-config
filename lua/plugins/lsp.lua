@@ -89,25 +89,12 @@ return {
 				end
 			end
 
-			-- TypeScript: one native server (tsc 7+). Enable only when a global
-			-- native tsc (>= 7) exists on PATH; that guarantees lsp/tsc.lua's
-			-- per-root resolver always finds a server (local bin upgrade, else
-			-- this global), so we never start a broken `--lsp` against TS <= 6.
-			local has_native_tsc = require("lsp_tsc").resolve(nil) ~= nil
-			if has_native_tsc then
-				table.insert(enabled, "tsc")
-			else
-				vim.api.nvim_create_autocmd("FileType", {
-					pattern = { "typescript", "typescriptreact", "javascript", "javascriptreact" },
-					once = true,
-					callback = function()
-						vim.notify(
-							"No TypeScript server. Install TypeScript >= 7 (`tsc`) on PATH.",
-							vim.log.levels.WARN
-						)
-					end,
-				})
-			end
+			-- TypeScript: one native server (tsc 7+). Enabled unconditionally;
+			-- lsp/tsc.lua's root_dir gates per project on a resolvable native
+			-- tsc (local node_modules bin, else global on PATH) and declines
+			-- cleanly -- warning once per root -- when none exists, so cmd never
+			-- starts a broken `--lsp` against TS <= 6 or a missing tsc.
+			table.insert(enabled, "tsc")
 
 			-- denols self-gates via root_markers, so it's harmless in npm projects.
 			if vim.fn.executable("deno") == 1 then
@@ -117,8 +104,10 @@ return {
 			vim.lsp.enable(enabled)
 
 			vim.api.nvim_create_user_command("TsInfo", function()
+				local global_tsc = require("lsp_tsc").resolve(nil) ~= nil
 				vim.notify(
-					"TypeScript server: " .. (has_native_tsc and "tsc (native >= 7)" or "none")
+					"Global TypeScript (tsc >= 7): " .. (global_tsc and "yes" or "no")
+						.. "\n(a local node_modules tsc is preferred per project, resolved on attach)"
 						.. "\ndeno on PATH: " .. tostring(vim.fn.executable("deno") == 1),
 					vim.log.levels.INFO
 				)

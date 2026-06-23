@@ -1,9 +1,13 @@
 -- Native TypeScript LSP: tsc 7+ (the Go compiler) via the hidden
--- `--lsp --stdio` protocol. Per root, a local node_modules tsc (>= 7) is
--- preferred, falling back to the global tsc on PATH. The enable gate in
--- lua/plugins/lsp.lua guarantees a global tsc >= 7 exists, so resolve()
--- always yields a command here and we never start a broken server.
+-- `--lsp --stdio` protocol. tsc is enabled unconditionally; `root_dir`
+-- decides per project whether to attach: it declines (Deno project, or no
+-- native tsc >= 7 resolvable) by returning without calling on_dir, so cmd
+-- only ever runs with a confirmed native tsc. Per root, a local
+-- node_modules tsc (>= 7) is preferred, falling back to the global on PATH.
 local tsc = require("lsp_tsc")
+
+-- Roots already warned about (no native tsc), so we notify at most once each.
+local warned = {}
 
 ---@type vim.lsp.Config
 return {
@@ -26,7 +30,20 @@ return {
 		if deno_root and (not project_root or #deno_root >= #project_root) then
 			return
 		end
-		on_dir(project_root or vim.fn.getcwd())
+		local root = project_root or vim.fn.getcwd()
+		-- Gate on a resolvable native tsc (>= 7) for this root; if none, decline
+		-- (don't call on_dir) and warn once per root instead of starting a server.
+		if not tsc.resolve(root) then
+			if not warned[root] then
+				warned[root] = true
+				vim.notify(
+					"No TypeScript >= 7 (tsc) found -- install `typescript@7+` locally or globally",
+					vim.log.levels.WARN
+				)
+			end
+			return
+		end
+		on_dir(root)
 	end,
 	settings = {
 		typescript = {
