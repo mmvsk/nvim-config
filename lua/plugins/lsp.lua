@@ -89,28 +89,20 @@ return {
 				end
 			end
 
-			-- TypeScript: pick exactly one server. Local tsgo beats global vtsls.
-			local ts_server
-			if vim.fn.executable("tsgo") == 1 then
-				ts_server = "tsgo"
-			else
-				local root = vim.fs.root(0, { "package.json", "tsconfig.json", ".git" })
-				if root and vim.fn.executable(root .. "/node_modules/.bin/tsgo") == 1 then
-					ts_server = "tsgo"
-				elseif vim.fn.executable("vtsls") == 1 then
-					ts_server = "vtsls"
-				end
-			end
-
-			if ts_server then
-				table.insert(enabled, ts_server)
+			-- TypeScript: one native server (tsc 7+). Enable only when a global
+			-- native tsc (>= 7) exists on PATH; that guarantees lsp/tsc.lua's
+			-- per-root resolver always finds a server (local bin upgrade, else
+			-- this global), so we never start a broken `--lsp` against TS <= 6.
+			local has_native_tsc = require("lsp_tsc").resolve(nil) ~= nil
+			if has_native_tsc then
+				table.insert(enabled, "tsc")
 			else
 				vim.api.nvim_create_autocmd("FileType", {
 					pattern = { "typescript", "typescriptreact", "javascript", "javascriptreact" },
 					once = true,
 					callback = function()
 						vim.notify(
-							"No TypeScript server. Install tsgo (@typescript/native-preview) or vtsls.",
+							"No TypeScript server. Install TypeScript >= 7 (`tsc`) on PATH.",
 							vim.log.levels.WARN
 						)
 					end,
@@ -126,7 +118,8 @@ return {
 
 			vim.api.nvim_create_user_command("TsInfo", function()
 				vim.notify(
-					"TypeScript server: " .. (ts_server or "none") .. "\ndeno on PATH: " .. tostring(vim.fn.executable("deno") == 1),
+					"TypeScript server: " .. (has_native_tsc and "tsc (native >= 7)" or "none")
+						.. "\ndeno on PATH: " .. tostring(vim.fn.executable("deno") == 1),
 					vim.log.levels.INFO
 				)
 			end, { desc = "Show TypeScript server info" })
