@@ -20,7 +20,7 @@ return {
 				["<C-Space>"] = { "show", "show_documentation", "hide_documentation" },
 			},
 			completion = {
-				list = { selection = { preselect = false, auto_insert = false } }, -- mirror old noselect + confirm{select=false}
+				list = { selection = { preselect = false, auto_insert = true } },  -- nothing selected on open; cycling inserts as you go
 				accept = { auto_brackets = { enabled = true } },
 			},
 			sources = { default = { "lsp", "path" } },     -- match old sources (no buffer/snippet plugin)
